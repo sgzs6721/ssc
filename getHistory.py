@@ -120,6 +120,16 @@ def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
         s = getBeautifulSoup(url)
         writeDataToFileXJ(s, fromDate, dataFolder)
 
+def getAllHistoryXJ(year, month, day, dataFolder) :
+    while True :
+        if year == time.localtime()[0] and month == time.localtime()[1] and day == time.localtime()[2] :
+            break
+        getHistoryXJ(year, month, day, dataFolder)
+        day = day + 1
+
+# getAllHistoryXJ(2007, 8, 12)
+# getAllHistoryJX(2007, 6, 13)
+
 while True :
     currentDate = getDate(dateYear, dateMonth, dateDay)
     fromDate = currentDate[0]
@@ -135,7 +145,7 @@ while True :
     endDate = getDate(dateYear, dateMonth, dateDay + 1)[0]
 
     xj = "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw&drawBegin="\
-         + fromDate + "&drawEnd=" + endDate #20070812
+         + fromDate + "&drawEnd=" + endDate
     s = getBeautifulSoup(xj)
     writeDataToFileXJ(s, fromDate, dataFolder)
     dateDay = dateDay + 1
