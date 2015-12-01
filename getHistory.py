@@ -99,12 +99,6 @@ def isDateValidate(date) :
     except:
         return False
 
-dateYear  = 2015
-dateMonth = 11
-dateDay   = 28
-
-dataFolder = "XJSSC"
-
 def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
     currentDate = getDate(dateYear, dateMonth, dateMonth)
     fromDate = currentDate[0]
@@ -127,8 +121,15 @@ def getAllHistoryXJ(year, month, day, dataFolder) :
         getHistoryXJ(year, month, day, dataFolder)
         day = day + 1
 
-# getAllHistoryXJ(2007, 8, 12)
-# getAllHistoryJX(2007, 6, 13)
+# getAllHistoryXJ(2007, 8, 12, "XJSSC")
+# getAllHistoryJX(2007, 6, 13, "JXSSC")
+
+
+dateYear  = 2015
+dateMonth = 11
+dateDay   = 28
+
+dataFolder = "XJSSC"
 
 while True :
     currentDate = getDate(dateYear, dateMonth, dateDay)
