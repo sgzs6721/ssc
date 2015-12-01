@@ -14,7 +14,11 @@ def getBeautifulSoup(url) :
     soup = BeautifulSoup(res)
     return soup
 
-def writeDataToFile(soup, fileName, dir) :
+def writeDataToFileJx(soup, fileName, dir) :
+    div = soup.find(attrs={'class','bonusNum_box newNum'})
+    print div
+
+def writeDataToFileXJ(soup, fileName, dir) :
     tableTr = soup.table.findAll("tr")
     realTr = tableTr[ 3 : -2 ]
     if not os.path.exists(dir) :
@@ -25,7 +29,7 @@ def writeDataToFile(soup, fileName, dir) :
         realTd = tr.findAll("td")[0:3]
         if not writeTag :
             if realTd[2].text.encode("utf8") == "&nbsp;" :
-                print  fileName + "无数据"
+                print  fileName + ", no data!"
                 return
             else :
                 writeTag = True
@@ -100,6 +104,22 @@ dateMonth = 11
 dateDay   = 28
 
 dataFolder = "XJSSC"
+
+def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
+    currentDate = getDate(dateYear, dateMonth, dateMonth)
+    fromDate = currentDate[0]
+    [dateYear, dateMonth, dateDay] = currentDate[1:]
+    endDate = getDate(dateYear, dateMonth, dateDay + 1)[0]
+
+    if os.path.exists(dataFolder + "/" + fromDate) :
+        print "skip " + fromDate
+        return
+    else :
+        url = "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw&drawBegin="\
+         + fromDate + "&drawEnd=" + endDate
+        s = getBeautifulSoup(url)
+        writeDataToFileXJ(s, fromDate, dataFolder)
+
 while True :
     currentDate = getDate(dateYear, dateMonth, dateDay)
     fromDate = currentDate[0]
@@ -117,6 +137,6 @@ while True :
     xj = "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw&drawBegin="\
          + fromDate + "&drawEnd=" + endDate #20070812
     s = getBeautifulSoup(xj)
-    writeDataToFile(s, fromDate, dataFolder)
+    writeDataToFileXJ(s, fromDate, dataFolder)
     dateDay = dateDay + 1
 
