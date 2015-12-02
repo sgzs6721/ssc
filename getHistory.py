@@ -16,6 +16,10 @@ def getBeautifulSoup(url) :
 
 def writeDataToFile(soup, fileName, dir) :
     div = soup.findAll(attrs={"class":"history-tab"})
+    if len(div) == 0 :
+        print  fileName + ", no data!"
+        return
+    dataObject = open(dir + "/" + fileName, "w+")
     for i in range(1,4) :
         column = div[0].findAll(attrs={"class":"tr-odd" + str(i)})[0].tbody.findAll("tr")
         for index in column :
@@ -27,12 +31,17 @@ def writeDataToFile(soup, fileName, dir) :
                 if not (dataNumber == "" or dataNumber == '- -'):
                     frontThree = checkThree(dataNumber[0:3])
                     endThree   = checkThree(dataNumber[2:])
-
+                else :
+                    continue
                 lineNumber = " ".join([fileName+td[0].text.encode("utf8"), "time",
                                        dataNumber, frontThree, endThree])
-                print lineNumber
+                dataObject.write(lineNumber)
+                dataObject.write("\n")
+
             else :
                 break
+    dataObject.close()
+    print "Create File " + fileName
 
 def writeDataToFileXJ(soup, fileName, dir) :
     tableTr = soup.table.findAll("tr")
@@ -147,7 +156,6 @@ def getAllHistory(year, month, day, dataFolder, lotId) :
         [year, month, day] = getHistory(year, month, day, dataFolder, lotId)
         day = day + 1
 
-# getAllHistoryXJ(2007, 8, 12, "XJSSC")
-# getAllHistory(2009, 8, 24, "JXSSC", "258001")
-getAllHistory(2009, 9, 16, "JXSSC", "258001")
-# getAllHistory(2009, 12, 13, "CQSSC", "255401")
+getAllHistoryXJ(2007, 8, 12, "XJSSC")
+getAllHistory(2009, 8, 24, "JXSSC", "258001")
+getAllHistory(2009, 12, 13, "CQSSC", "255401")
