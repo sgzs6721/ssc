@@ -14,9 +14,25 @@ def getBeautifulSoup(url) :
     soup = BeautifulSoup(res)
     return soup
 
-def writeDataToFileJx(soup, fileName, dir) :
-    div = soup.find(attrs={'class','bonusNum_box newNum'})
-    print div
+def writeDataToFile(soup, fileName, dir) :
+    div = soup.findAll(attrs={"class":"history-tab"})
+    for i in range(1,4) :
+        column = div[0].findAll(attrs={"class":"tr-odd" + str(i)})[0].tbody.findAll("tr")
+        for index in column :
+            td = index.findAll("td")
+            if not td[0].text == '' :
+                dataNumber = td[1].text.encode("utf8")
+                frontThree = 0
+                endThree   = 0
+                if not (dataNumber == "" or dataNumber == '- -'):
+                    frontThree = checkThree(dataNumber[0:3])
+                    endThree   = checkThree(dataNumber[2:])
+
+                lineNumber = " ".join([fileName+td[0].text.encode("utf8"), "time",
+                                       dataNumber, frontThree, endThree])
+                print lineNumber
+            else :
+                break
 
 def writeDataToFileXJ(soup, fileName, dir) :
     tableTr = soup.table.findAll("tr")
@@ -75,22 +91,12 @@ def getDate(year,month,day) :
         year = year + 1
         stringYear  = str(year)
 
-    if isDateValidate(str(stringYear) + "-" + stringMonth + "-" + stringDay) :
-        return [str(stringYear) + stringMonth + stringDay, year, month, day]
+    formatDate = str(stringYear) + "-" + stringMonth + "-" + stringDay
+    if isDateValidate(formatDate) :
+        return [str(stringYear) + stringMonth + stringDay, formatDate, year, month, day]
     else :
         day = day + 1
         return getDate(stringYear, month, day)
-
-def getFormatDate(year, month, day) :
-    stringYear  = str(year)
-    stringMonth = str(month)
-    stringDay   = str(day)
-    if day < 10 :
-        stringDay = "0" + stringDay
-    if month < 10 :
-        stringMonth = "0" + stringMonth
-
-    return stringYear + "-" + stringMonth + "-" + stringDay
 
 def isDateValidate(date) :
     try:
@@ -100,54 +106,48 @@ def isDateValidate(date) :
         return False
 
 def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
-    currentDate = getDate(dateYear, dateMonth, dateMonth)
+    currentDate = getDate(dateYear, dateMonth, dateDay)
     fromDate = currentDate[0]
-    [dateYear, dateMonth, dateDay] = currentDate[1:]
+    [dateYear, dateMonth, dateDay] = currentDate[2:]
     endDate = getDate(dateYear, dateMonth, dateDay + 1)[0]
 
     if os.path.exists(dataFolder + "/" + fromDate) :
         print "skip " + fromDate
-        return
     else :
         url = "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw&drawBegin="\
          + fromDate + "&drawEnd=" + endDate
         s = getBeautifulSoup(url)
         writeDataToFileXJ(s, fromDate, dataFolder)
 
+    return [dateYear, dateMonth, dateDay]
+
+def getHistory(dateYear, dateMonth, dateDay, dataFolder, lotId) :
+    currentDate = getDate(dateYear, dateMonth, dateDay)
+    fromDate = currentDate[1]
+    [dateYear, dateMonth, dateDay] = currentDate[2:]
+
+    if os.path.exists(dataFolder + "/" + fromDate) :
+        print "skip " + fromDate
+    url = "http://chart.cp.360.cn/kaijiang/kaijiang?lotId="+lotId+"&spanType=2&span="+fromDate+"_" + fromDate
+    s = getBeautifulSoup(url)
+    writeDataToFile(s, currentDate[0], dataFolder)
+    return [dateYear, dateMonth, dateDay]
+
 def getAllHistoryXJ(year, month, day, dataFolder) :
     while True :
         if year == time.localtime()[0] and month == time.localtime()[1] and day == time.localtime()[2] :
             break
-        getHistoryXJ(year, month, day, dataFolder)
+        [year, month, day] = getHistoryXJ(year, month, day, dataFolder)
+        day = day + 1
+
+def getAllHistory(year, month, day, dataFolder, lotId) :
+    while True :
+        if year == time.localtime()[0] and month == time.localtime()[1] and day == time.localtime()[2] :
+            break
+        [year, month, day] = getHistory(year, month, day, dataFolder, lotId)
         day = day + 1
 
 # getAllHistoryXJ(2007, 8, 12, "XJSSC")
-# getAllHistoryJX(2007, 6, 13, "JXSSC")
-
-
-dateYear  = 2015
-dateMonth = 11
-dateDay   = 28
-
-dataFolder = "XJSSC"
-
-while True :
-    currentDate = getDate(dateYear, dateMonth, dateDay)
-    fromDate = currentDate[0]
-    [dateYear, dateMonth, dateDay] = currentDate[1:]
-
-    if dateYear == time.localtime()[0] and dateMonth == time.localtime()[1] and dateDay == time.localtime()[2] :
-        break
-
-    if os.path.exists(dataFolder + "/" + fromDate) :
-        dateDay = dateDay + 1
-        print "skip " + fromDate
-        continue
-    endDate = getDate(dateYear, dateMonth, dateDay + 1)[0]
-
-    xj = "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw&drawBegin="\
-         + fromDate + "&drawEnd=" + endDate
-    s = getBeautifulSoup(xj)
-    writeDataToFileXJ(s, fromDate, dataFolder)
-    dateDay = dateDay + 1
-
+# getAllHistory(2009, 8, 24, "JXSSC", "258001")
+getAllHistory(2009, 9, 16, "JXSSC", "258001")
+# getAllHistory(2009, 12, 13, "CQSSC", "255401")
