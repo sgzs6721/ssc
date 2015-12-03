@@ -46,8 +46,6 @@ def writeDataToFile(soup, fileName, dir) :
 def writeDataToFileXJ(soup, fileName, dir) :
     tableTr = soup.table.findAll("tr")
     realTr = tableTr[ 3 : -2 ]
-    if not os.path.exists(dir) :
-        os.makedirs(dir)
 
     writeTag = False
     for tr in realTr :
@@ -120,6 +118,9 @@ def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
     [dateYear, dateMonth, dateDay] = currentDate[2:]
     endDate = getDate(dateYear, dateMonth, dateDay + 1)[0]
 
+    if not os.path.exists(dataFolder) :
+        os.makedirs(dataFolder)
+
     if os.path.exists(dataFolder + "/" + fromDate) :
         print "skip " + fromDate
     else :
@@ -137,8 +138,11 @@ def getHistory(dateYear, dateMonth, dateDay, dataFolder, lotId) :
 
     if os.path.exists(dataFolder + "/" + fromDate) :
         print "skip " + fromDate
+
     url = "http://chart.cp.360.cn/kaijiang/kaijiang?lotId="+lotId+"&spanType=2&span="+fromDate+"_" + fromDate
     s = getBeautifulSoup(url)
+    if not os.path.exists(dataFolder) :
+        os.makedirs(dataFolder)
     writeDataToFile(s, currentDate[0], dataFolder)
     return [dateYear, dateMonth, dateDay]
 
