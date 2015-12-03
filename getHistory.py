@@ -168,24 +168,35 @@ def generateHistory(dataFolder, inputFile) :
     dayArray = []
     for line in fileObject :
         date = line.split("-")[0]
-
-        if (not datetime == "") and (not datetime == date) :
-            # outputObject.close()
-            print "close file"
         if not date == datetime :
-            # outputObject = open(date, "w+")
-            datetime = date
             if not len(dayArray) == 0 :
                 dayArray.reverse()
-                writeArrayToFile(outputObject, dayArray)
+                writeArrayToFile(outputObject, dayArray, datetime, dataFolder)
                 dayArray = []
-                exit(0)
+                # exit()
         dayArray.append(line.strip())
+        datetime = date
 
-def writeArrayToFile(fileObject, array) :
-    pprint(array)
+def writeArrayToFile(fileObject, array, date, dataFolder) :
+    outputObject = open(date, "w+")
+    totalNumber = len(array)
+    for line in array :
+        info = line.split("\t")
+        dateNumber = info[0].split("-")[1]
+        dataNumber = info[1]
+        frontThree = checkThree(dataNumber[0:3])
+        endThree   = checkThree(dataNumber[2:])
+        time = getTime(totalNumber, dataFolder)
+        newLine = " ".join([date + dateNumber, time,
+                            dataNumber, frontThree, endThree])
+        outputObject.write(newLine)
+        outputObject.write("\n")
+    outputObject.close()
 
-generateHistory("xx", "cqssc.txt")
+def getTime(number, dataFolder) :
+    return "time"
+
+generateHistory("CQSSC", "cqssc.txt")
 # getAllHistoryXJ(2007, 8, 12, "XJSSC")
 # getAllHistory(2009, 8, 24, "JXSSC", "258001")
 # getAllHistory(2009, 12, 13, "CQSSC", "255401")
