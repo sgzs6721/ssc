@@ -6,6 +6,7 @@ import xml.dom.minidom
 from pprint import pprint
 import time
 import os
+import codecs
 from BeautifulSoup import BeautifulSoup
 
 def getBeautifulSoup(url) :
@@ -160,6 +161,31 @@ def getAllHistory(year, month, day, dataFolder, lotId) :
         [year, month, day] = getHistory(year, month, day, dataFolder, lotId)
         day = day + 1
 
-getAllHistoryXJ(2007, 8, 12, "XJSSC")
-getAllHistory(2009, 8, 24, "JXSSC", "258001")
-getAllHistory(2009, 12, 13, "CQSSC", "255401")
+def generateHistory(dataFolder, inputFile) :
+    fileObject = codecs.open(inputFile, "r", "utf_8_sig")
+    datetime = ""
+    outputObject = ""
+    dayArray = []
+    for line in fileObject :
+        date = line.split("-")[0]
+
+        if (not datetime == "") and (not datetime == date) :
+            # outputObject.close()
+            print "close file"
+        if not date == datetime :
+            # outputObject = open(date, "w+")
+            datetime = date
+            if not len(dayArray) == 0 :
+                dayArray.reverse()
+                writeArrayToFile(outputObject, dayArray)
+                dayArray = []
+                exit(0)
+        dayArray.append(line.strip())
+
+def writeArrayToFile(fileObject, array) :
+    pprint(array)
+
+generateHistory("xx", "cqssc.txt")
+# getAllHistoryXJ(2007, 8, 12, "XJSSC")
+# getAllHistory(2009, 8, 24, "JXSSC", "258001")
+# getAllHistory(2009, 12, 13, "CQSSC", "255401")
