@@ -173,30 +173,84 @@ def generateHistory(dataFolder, inputFile) :
                 dayArray.reverse()
                 writeArrayToFile(outputObject, dayArray, datetime, dataFolder)
                 dayArray = []
-                # exit()
         dayArray.append(line.strip())
         datetime = date
 
 def writeArrayToFile(fileObject, array, date, dataFolder) :
-    outputObject = open(date, "w+")
-    totalNumber = len(array)
-    for line in array :
-        info = line.split("\t")
-        dateNumber = info[0].split("-")[1]
-        dataNumber = info[1]
-        frontThree = checkThree(dataNumber[0:3])
-        endThree   = checkThree(dataNumber[2:])
-        time = getTime(totalNumber, dataFolder)
-        newLine = " ".join([date + dateNumber, time,
-                            dataNumber, frontThree, endThree])
-        outputObject.write(newLine)
-        outputObject.write("\n")
-    outputObject.close()
+    if not os.path.exists(dataFolder) :
+        os.makedirs(dataFolder)
 
-def getTime(number, dataFolder) :
-    return "time"
+    if os.path.exists(dataFolder + "/" + date) :
+        print "skip " + date
+    else :
+        outputObject = open(dataFolder + "/" + date, "w+")
+        totalNumber = len(array)
+        for line in array :
+            info = line.split("\t")
+            dateNumber = info[0].split("-")[1]
+            dataNumber = info[1]
+            frontThree = checkThree(dataNumber[0:3])
+            endThree   = checkThree(dataNumber[2:])
+            time = getTime(totalNumber, dateNumber, dataFolder)
+            newLine = " ".join([date + dateNumber, time,
+                                dataNumber, frontThree, endThree])
+            outputObject.write(newLine)
+            outputObject.write("\n")
+        outputObject.close()
 
-generateHistory("CQSSC", "cqssc.txt")
-# getAllHistoryXJ(2007, 8, 12, "XJSSC")
+def getTime(total, number, dataFolder) :
+    intNumber = int(number)
+    hour = 0
+    min  = 0
+    if dataFolder == "CQSSC" :
+
+        if total > 72 :
+            if intNumber < 24 :
+                [hour, min] = calculateTime(intNumber, 0, 0, 5, 0)
+            else :
+                if intNumber > 96 :
+                    [hour, min] = calculateTime(intNumber - 96, 22, 0, 5, 0)
+                else :
+                    [hour, min] = calculateTime(intNumber - 23, 9, 50, 10, 0)
+        else :
+            [hour, min] = calculateTime(intNumber, 9, 50, 10, 0)
+
+    elif dataFolder == "JXSSC" :
+        step = calculateStep(intNumber)
+        [hour, min] = calculateTime(intNumber, 8, 59, 10, step)
+
+    else :
+        return "null"
+
+    stringHour = str(hour)
+    stringMin  = str(min)
+
+    if hour < 10 :
+        stringHour = "0" + stringHour
+    if hour == 24 :
+        stringHour = "00"
+    if min < 10 :
+        stringMin  = "0" + stringMin
+
+    return stringHour + ":" + stringMin + ":" + "00"
+
+def calculateStep(number) : #expected : 7767767767764
+    bigStep    = 3
+    big        = number / 20
+    bigReserve = number % 20
+    small = bigReserve / 7
+    return big * bigStep + small
+
+def calculateTime(intNumber, startHour, startMin, step, adjust) :
+    totalMove = intNumber * step  + startMin + adjust
+    hour = startHour + totalMove / 60
+    min  = totalMove % 60
+    return [hour, min]
+
+generateHistory("CQSSC", "cqssc.txt") # end 20151202
+generateHistory("JXSSC", "jxssc.txt") # end 20151202
+getAllHistoryXJ(2007, 8, 12, "XJSSC") # current date
+
+# get from 360
 # getAllHistory(2009, 8, 24, "JXSSC", "258001")
 # getAllHistory(2009, 12, 13, "CQSSC", "255401")
