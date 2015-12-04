@@ -249,7 +249,7 @@ def calculateTime(intNumber, startHour, startMin, step, adjust) :
 
 generateHistory("CQSSC", "cqssc.txt") # end 20151202
 generateHistory("JXSSC", "jxssc.txt") # end 20151202
-getAllHistoryXJ(2007, 8, 12, "XJSSC") # current date
+getAllHistoryXJ(2007, 8, 12, "XJSSC") # end current date
 
 # get from 360
 # getAllHistory(2009, 8, 24, "JXSSC", "258001")
