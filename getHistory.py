@@ -1,9 +1,7 @@
 #encoding: utf-8
-import urllib
 import urllib2
-import xml.dom.minidom
+import utils
 
-from pprint import pprint
 import time
 import os
 import codecs
@@ -79,33 +77,6 @@ def checkThree(dataNumber) :
         return "1"
     return "0"
 
-def getDate(year,month,day) :
-    stringYear  = year
-    stringMonth = str(month)
-    stringDay   = str(day)
-
-    if day < 10 :
-        stringDay = "0" + stringDay
-    elif day > 31 :
-        day = 1
-        stringDay = "01"
-        month = month + 1
-        stringMonth = str(month)
-    if month < 10 :
-        stringMonth = "0" + stringMonth
-    if month > 12 :
-        month = 1
-        stringMonth = "01"
-        year = year + 1
-        stringYear  = str(year)
-
-    formatDate = str(stringYear) + "-" + stringMonth + "-" + stringDay
-    if isDateValidate(formatDate) :
-        return [str(stringYear) + stringMonth + stringDay, formatDate, year, month, day]
-    else :
-        day = day + 1
-        return getDate(stringYear, month, day)
-
 def isDateValidate(date) :
     try:
         time.strptime(date, "%Y-%m-%d")
@@ -114,10 +85,10 @@ def isDateValidate(date) :
         return False
 
 def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
-    currentDate = getDate(dateYear, dateMonth, dateDay)
+    currentDate = utils.getDate(dateYear, dateMonth, dateDay)
     fromDate = currentDate[0]
     [dateYear, dateMonth, dateDay] = currentDate[2:]
-    endDate = getDate(dateYear, dateMonth, dateDay + 1)[0]
+    endDate = utils.getDate(dateYear, dateMonth, dateDay + 1)[0]
 
     if not os.path.exists(dataFolder) :
         os.makedirs(dataFolder)
@@ -133,7 +104,7 @@ def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
     return [dateYear, dateMonth, dateDay]
 
 def getHistory(dateYear, dateMonth, dateDay, dataFolder, lotId) :
-    currentDate = getDate(dateYear, dateMonth, dateDay)
+    currentDate = utils.getDate(dateYear, dateMonth, dateDay)
     fromDate = currentDate[1]
     [dateYear, dateMonth, dateDay] = currentDate[2:]
 
