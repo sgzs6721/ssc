@@ -142,12 +142,14 @@ def generateHistory(dataFolder, inputFile) :
         if not date == datetime :
             if not len(dayArray) == 0 :
                 dayArray.reverse()
-                writeArrayToFile(outputObject, dayArray, datetime, dataFolder)
+                writeArrayToFile(dayArray, datetime, dataFolder)
                 dayArray = []
         dayArray.append(line.strip())
         datetime = date
+    if not len(dayArray) == 0 :
+        writeArrayToFile(dayArray, datetime, dataFolder)
 
-def writeArrayToFile(fileObject, array, date, dataFolder) :
+def writeArrayToFile(array, date, dataFolder) :
     if not os.path.exists(dataFolder) :
         os.makedirs(dataFolder)
 
