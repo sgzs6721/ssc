@@ -136,70 +136,69 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
 
     baseNumber = baseline.split(" ")[2]
     baseDate   = baseline.split(" ")[0]
+    baseTime   = baseline.split(" ")[1]
 
     if len(data) == 0 :
         print "NO DATA!"
         exit()
 
-
-    continued = 1
-    maxContinued = continued
+    continued = 0
+    continuedStart = baseDate + "-" + baseTime
+    continuedEnd   = continuedStart
+    maxArea        = ""
+    continuedLog   = ""
+    maxContinued   = continued
     totalHit  = 0
-    for line in data :
+
+    for i,line in enumerate(data) :
         info = line.split(" ")
         number = info[2]
         date   = info[0]
-        hit    = False
+        time   = info[1]
+        continuedEnd = date + "-" + time
         thisInput  = inputMoneyOnce * times
         thisBonus  = 0
-        print "Compare " + number + "(" + date + ")" + " with " + baseNumber + "(" + baseDate + ")"
+        printLog = "[" + str(i + 1) + "]Compare " + number + "(" + date + ")" + " with " + baseNumber + "(" + baseDate + ") "
+        printLog = printLog + "[Input:" + str(thisInput) + "] "
+        hit = False
         for index in arrayIndex :
             if number[index] == baseNumber[index] :
                 hit = True
+                continuedLast = continuedEnd
                 totalHit = totalHit + 1
                 continued = continued + 1
                 if continued > maxContinued :
                     maxContinued = continued
-                print "Fail to get bonus"
+                    maxArea = continuedStart + " " + continuedEnd
+                printLog = printLog + "Get bonus 00.00" + "[" + str(continued) + "]"
                 break
         if not hit :
-            continued = 1
             thisBonus  = bonusOnce * times
-            print "Get bonus " + str(thisBonus)
+            printLog = printLog + "Get bonus " +str(thisBonus)
+
+            if continued > 0 :
+                continuedLog = continuedLog + "[" + str(continued) + "]" + "[From " + continuedStart + " to " + continuedLast + "]\n"
+
+            continued = 0
+            continuedStart = continuedEnd
+
+        print printLog
         baseNumber = number
         baseDate   = date
         profit = profit + thisBonus - thisInput
 
     maxInputMoney = (continued - 1) * inputMoneyOnce * times
 
-    print inputMoneyOnce
     print profit
-    print maxContinued - 1
+    print maxContinued
     print totalHit
+    print "Max:[" + str(maxContinued) + "]" + "[" + maxArea + "]"
+    print continuedLog
     return [profit, maxInputMoney]
 
 def simulateGroupBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, logDir) :
-    baseInput  = 2
-    baseBonus  = 19.44
-    if rebate > 0 :
-        baseBonus = 18
+    print ""
 
-    inputMoneyOnce = getTimes(len(arrayIndex), plan) * baseInput * (1 - rebate)
-    bonusOnce      = baseBonus * (10 ** (len(arrayIndex) - 1))
-    inputMoney = 0
-    profit     = 0
-
-    log = getLogName(fromDate, toDate, logDir)
-
-    data = readDataFromFile(type, fromDate, toDate)
-
-    # pprint(inputMoneyOnce)
-    pprint(bonusOnce)
-    pprint(log)
-    pprint(data)
-
-    return [inputMoney, profit, log]
-
-simulateDirectBet("20130209", "20130209", "XJSSC", 9, 0, 1, range(5), "CQLOG")
+simulateDirectBet("20151012", "20151012", "XJSSC", 9, 0, 1, range(2,5), "CQLOG")
 # simulateGroupBet(20151201, 20151204, "JXSSC", 9, 2, range(2,5), "JXLOG")
 # simulateDirectBet(20151201008, 20151201100, "XJSSC", 9, 3, range(1,5), "XJLOG")
