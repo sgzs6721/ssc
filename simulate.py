@@ -145,7 +145,7 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
     continued = 0
     continuedStart = baseDate + "-" + baseTime
     continuedEnd   = continuedStart
-    maxArea        = ""
+    maxArea        = []
     continuedLog   = ""
     maxContinued   = continued
     totalHit  = 0
@@ -167,16 +167,20 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
                 continuedLast = continuedEnd
                 totalHit = totalHit + 1
                 continued = continued + 1
+
+                if continued == maxContinued :
+                    maxArea.append(continuedStart + " " + continuedEnd)
                 if continued > maxContinued :
+                    maxArea = [continuedStart + " " + continuedEnd]
                     maxContinued = continued
-                    maxArea = continuedStart + " " + continuedEnd
+
                 printLog = printLog + "Get bonus 00.00" + "[" + str(continued) + "]"
                 break
         if not hit :
             thisBonus  = bonusOnce * times
             printLog = printLog + "Get bonus " +str(thisBonus)
 
-            if continued > 0 :
+            if continued > 3 :
                 continuedLog = continuedLog + "[" + str(continued) + "]" + "[From " + continuedStart + " to " + continuedLast + "]\n"
 
             continued = 0
@@ -192,13 +196,13 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
     print profit
     print maxContinued
     print totalHit
-    print "Max:[" + str(maxContinued) + "]" + "[" + maxArea + "]"
+    print "Max:[" + str(maxContinued) + "]" + "[" + str(maxArea) + "]"
     print continuedLog
     return [profit, maxInputMoney]
 
 def simulateGroupBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, logDir) :
     print ""
 
-simulateDirectBet("20151012", "20151012", "XJSSC", 9, 0, 1, range(2,5), "CQLOG")
+simulateDirectBet("20070812", "20151206", "XJSSC", 9, 0, 1, range(3,4), "CQLOG")
 # simulateGroupBet(20151201, 20151204, "JXSSC", 9, 2, range(2,5), "JXLOG")
 # simulateDirectBet(20151201008, 20151201100, "XJSSC", 9, 3, range(1,5), "XJLOG")
