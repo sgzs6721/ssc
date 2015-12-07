@@ -112,15 +112,20 @@ def getNumber(line) :
     b3     = info[4]
     return [date, time, number, f3, b3]
 
-def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, logDir) :
+def addTimes(once, input, bonus) :
+    least = int(input / (bonus - once)) + 1
+
+    return least
+
+def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, double, arrayIndex, logDir) :
     baseInput  = 2
+    firstTimes = times
     baseBonus  = 19.44
     if rebate > 0 :
         baseBonus = 18
 
     inputMoneyOnce = getTimes(len(arrayIndex), plan) * baseInput * (1 - rebate)
     bonusOnce      = baseBonus * (10 ** (len(arrayIndex) - 1))
-    # inputMoney = 0
     profit     = 0
 
     log = getLogName(fromDate, toDate, logDir)
@@ -150,6 +155,7 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
     maxContinued   = continued
     totalHit  = 0
 
+    inputMoney = 0
     for i,line in enumerate(data) :
         info = line.split(" ")
         number = info[2]
@@ -167,17 +173,21 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
                 continuedLast = continuedEnd
                 totalHit = totalHit + 1
                 continued = continued + 1
-
+                inputMoney = inputMoney + thisInput
                 if continued == maxContinued :
                     maxArea.append(continuedStart + " " + continuedEnd)
                 if continued > maxContinued :
                     maxArea = [continuedStart + " " + continuedEnd]
                     maxContinued = continued
-
+                if double :
+                    times = addTimes(inputMoneyOnce, inputMoney, bonusOnce)
                 printLog = printLog + "Get bonus 00.00" + "[" + str(continued) + "]"
+                thisBonus = 0
                 break
         if not hit :
             thisBonus  = bonusOnce * times
+            times = firstTimes
+            inputMoney = 0
             printLog = printLog + "Get bonus " +str(thisBonus)
 
             if continued > 3 :
@@ -203,6 +213,6 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, l
 def simulateGroupBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, logDir) :
     print ""
 
-simulateDirectBet("20070812", "20151206", "XJSSC", 9, 0, 1, range(3,4), "CQLOG")
+simulateDirectBet("20070812", "20151206", "XJSSC", 9, 0, 1, True, range(5), "CQLOG")
 # simulateGroupBet(20151201, 20151204, "JXSSC", 9, 2, range(2,5), "JXLOG")
 # simulateDirectBet(20151201008, 20151201100, "XJSSC", 9, 3, range(1,5), "XJLOG")
