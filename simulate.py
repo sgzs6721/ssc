@@ -242,7 +242,7 @@ def simulateGroupBet(fromDate, toDate, type) :
 
     print [frontThreeMax, endThreeMax]
 
-def splitData(fromDate, toDate, type) :
+def getSplitData(fromDate, toDate, type) :
     data = readDataFromFile(type, fromDate, toDate)
 
     splitData = []
@@ -258,29 +258,46 @@ def splitData(fromDate, toDate, type) :
 
 def calculateNumber(arrayData) :
     base = arrayData[0]
-    baseType = judgeType(base)
 
-    for num in arrayData :
-        numType = judgeType(num)
-
-def judgeType(number) :
-    type = {}
-    if number % 2 == 0 :
-        type["firstSd"] = "even"
+def getBaseInfo(continuedType, number) :
+    if continuedType == "even-odd" :
+        return number % 2
     else :
-        type["firstSd"] = "odd"
-    if number > 4 :
-        type["size"]    = "big"
-    else :
-        type["size"]    = "small"
+        return number > 4
 
-    return type
-
-def continuedNumber(fromDate, toDate, type) :
-    print ""
+def continuedNumber(fromDate, toDate, type, continueNumber, continueType) :
+    splitData = getSplitData(fromDate, toDate, type)
+    maxContinuedNumber   = [1, 1, 1, 1, 1]
+    afterContinuedNumber = [0, 0, 0, 0, 0]
+    for index, pos in enumerate(splitData) :
+        baseNumber = pos[0]
+        base = getBaseInfo(continueType, baseNumber)
+        condition = ""
+        continued = 1
+        i = 1
+        while i < len(pos) :
+            condition = getBaseInfo(continueType, pos[i])
+            if condition == base :
+                continued = continued + 1
+                if continued > maxContinuedNumber[index] :
+                    maxContinuedNumber[index] = continued
+            else :
+                if continued == continueNumber :
+                    temp = 1
+                    while True :
+                        if condition == getBaseInfo(continueType,pos[i + temp]) :
+                            break
+                        temp = temp + 1
+                        if i + temp == len(pos) : break
+                    print temp
+                continued = 1
+                base = condition
+            i = i + 1
+        pprint(maxContinuedNumber)
+        exit()
 
 # simulateDirectBet("20151206", "20151206", "XJSSC", 9, 0, 1, False, range(3,5), "CQLOG")
 # simulateGroupBet("20070812", "20151206","XJSSC")
-continuedNumber("20070812", "20070812", "XJSSC")
+continuedNumber("20070812", "20070812", "XJSSC", 4, "even-odd")
 # simulateGroupBet(20151201, 20151204, "JXSSC", 9, 2, range(2,5), "JXLOG")
 # simulateDirectBet(20151201008, 20151201100, "XJSSC", 9, 3, range(1,5), "XJLOG")
