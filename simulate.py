@@ -210,9 +210,77 @@ def simulateDirectBet(fromDate, toDate, type, plan, rebate, times, double, array
     print continuedLog
     return [profit, maxInputMoney]
 
-def simulateGroupBet(fromDate, toDate, type, plan, rebate, times, arrayIndex, logDir) :
+def simulateGroupBet(fromDate, toDate, type) :
+    data = readDataFromFile(type, fromDate, toDate)
+
+    frontThreeMax = 0
+    endThreeMax   = 0
+
+    frontThree    = 0
+    endThree      = 0
+    for i, line in enumerate(data) :
+        info = line.split(" ")
+        front = info[3]
+        end   = info[4]
+        if int(front) == 1 :
+            frontThree = frontThree + 1
+            if frontThree > frontThreeMax :
+                frontThreeMax = frontThree
+        else :
+            if frontThree > 3 :
+                print info[0] + "[" + str(frontThree) + "][F]"
+            frontThree = 0
+
+        if int(end) == 1 :
+            endThree = endThree + 1
+            if endThree > endThreeMax :
+                endThreeMax = endThree
+        else :
+            if endThree > 3 :
+                print info[0] + "[" + str(endThree) + "][E]"
+            endThree = 0
+
+    print [frontThreeMax, endThreeMax]
+
+def splitData(fromDate, toDate, type) :
+    data = readDataFromFile(type, fromDate, toDate)
+
+    splitData = []
+    for i in range(5) :
+        splitData.append([])
+
+    for number in data :
+        realNumber = number.split(" ")[2]
+        for i in range(5) :
+            splitData[i].append(int(realNumber[i]))
+
+    return splitData
+
+def calculateNumber(arrayData) :
+    base = arrayData[0]
+    baseType = judgeType(base)
+
+    for num in arrayData :
+        numType = judgeType(num)
+
+def judgeType(number) :
+    type = {}
+    if number % 2 == 0 :
+        type["firstSd"] = "even"
+    else :
+        type["firstSd"] = "odd"
+    if number > 4 :
+        type["size"]    = "big"
+    else :
+        type["size"]    = "small"
+
+    return type
+
+def continuedNumber(fromDate, toDate, type) :
     print ""
 
-simulateDirectBet("20070812", "20151206", "XJSSC", 9, 0, 1, True, range(5), "CQLOG")
+# simulateDirectBet("20151206", "20151206", "XJSSC", 9, 0, 1, False, range(3,5), "CQLOG")
+# simulateGroupBet("20070812", "20151206","XJSSC")
+continuedNumber("20070812", "20070812", "XJSSC")
 # simulateGroupBet(20151201, 20151204, "JXSSC", 9, 2, range(2,5), "JXLOG")
 # simulateDirectBet(20151201008, 20151201100, "XJSSC", 9, 3, range(1,5), "XJLOG")
