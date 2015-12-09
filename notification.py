@@ -76,19 +76,19 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
 
                 if continued == breakNumber :
                     temp = 1
-                    breakNumber = []
+                    breakNumbers = []
                     while True :
                         if condition == getBaseInfo(continueType, int(pos[i + temp].split(" ")[0])) :
                             break
                         temp = temp + 1
-                        breakNumber.append(int(pos[i + temp].split(" ")[0]))
+                        breakNumbers.append(int(pos[i + temp].split(" ")[0]))
                         if i + temp == len(pos) : break
                     # if temp > 6
                     if False :
                         printInfo = "(" + str(index) + ")=>"
                         printInfo = printInfo + str(group) + "=>" + "[" + posInfo[0] + "]"
                         printInfo = printInfo + "(" + " ".join([posInfo[1], posInfo[2]]) + ")" + "=>"
-                        printInfo = printInfo + str(breakNumber)
+                        printInfo = printInfo + str(breakNumbers)
                         printInfo = printInfo + "=>{" + str(temp - 1) + "}"
                         print printInfo
                 continued = 1
@@ -99,6 +99,7 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
             i = i + 1
     print maxContinuedNumber
     return allMessage
+
 for type in ["even-odd", "size"] :
     continuedNumber("20070401", "20151202", "CQSSC", 6, type, "CQLabel")
     continuedNumber("20080928", "20151202", "JXSSC", 6, type, "JXLabel")
