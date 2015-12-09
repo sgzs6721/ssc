@@ -1,7 +1,7 @@
 #encoding: utf-8
 import utils
 import os
-# from pprint import pprint
+from pprint import pprint
 
 def getSplitData(fromDate, toDate, type) :
     data = utils.readDataFromFile(type, fromDate, toDate)
@@ -26,30 +26,34 @@ def getBaseInfo(continuedType, number) :
     else :
         return number > 4
 
-def isLabelExist(index, baseDate, baseNumber, labelDir) :
-    return os.path.exists(labelDir + "/" + baseDate + "-" + str(index) + "-" + str(baseNumber))
+def isLabelExist(type, index, baseDate, labelDir) :
+    return os.path.exists(labelDir + "/" + type + "-" + baseDate + "-" + str(index))
 
-def writeLabel(index, baseDate, baseNumber, labelDir) :
-    fileObject = open(labelDir + "/" + baseDate + "-" + str(index) + "-" + str(baseNumber), "w")
-    fileObject.write(baseDate + "-" + str(index) + "-" + str(baseNumber))
+def writeLabel(type, continueType, index, baseDate, labelDir, group, times) :
+    fileObject = open(labelDir + "/" + continueType + "/" + str(index + 1) + "/" + type + "-" + continueType + "-" + str(times), "a")
+    fileObject.write(str(baseDate) + "=>[" + str(index + 1) + "]=>" + str(group) + "\n")
     fileObject.close()
-    print "writeLabel" + baseDate + "-" + str(index) + "-" + str(baseNumber)
+    # print "writeLabel" + baseDate + "-" + str(index) + "=>" + str(group)
 
-def sendMessage(index, baseDate, baseNumber, labelDir, group):
+def getMessage(index, baseDate, group):
     content = "index:" + str(index) + "\n"
-    content = content + "baseDate:" + baseDate + "\n"
+    content = content + "baseDate:" + str(baseDate) + "\n"
     content = content + "continuedNumber" + group + "\n"
-    print content
+    # print content
+    return [index, baseDate, group]
 
-def continuedNumber(fromDate, toDate, type, continueNumber, continueType, labelDir) :
-    if not os.path.exists(labelDir) :
-        os.makedirs(labelDir)
+def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir) :
+
     splitData = getSplitData(fromDate, toDate, type)
     maxContinuedNumber   = [1, 1, 1, 1, 1]
 
+    allMessage = []
+
     for index, pos in enumerate(splitData) :
+        if not os.path.exists(labelDir + "/" + continueType + "/" + str(index + 1)) :
+            os.makedirs(labelDir + "/" + continueType + "/" + str(index + 1))
         baseNumber = int(pos[0].split(" ")[0])
-        baseDate   = pos[0].split(" ")[1]
+        baseDate   = pos[0].split(" ")[1:]
         base = getBaseInfo(continueType, baseNumber)
         condition = ""
         continued = 1
@@ -63,18 +67,14 @@ def continuedNumber(fromDate, toDate, type, continueNumber, continueType, labelD
                 group.append(int(posInfo[0]))
                 if continued > maxContinuedNumber[index] :
                     maxContinuedNumber[index] = continued
-                if continued > 6 :
-                    if not isLabelExist(index, baseDate, baseNumber, labelDir) :
-                        sendMessage(index, baseDate, baseNumber, labelDir, str(group))
-                        writeLabel(index, baseDate, baseNumber, labelDir)
-                    else :
-                        print "existed " + baseDate
-
-                    print "[" + str(index) + "]" + "(" + str(continued) + ")" + "[" + " ".join([posInfo[1], posInfo[2]]) + "]" + str(group)
-
             else :
-                # Find more than 10 continued detail
-                if continued == continueNumber :
+                # Find more than N times continued detail
+                for times in range(5, 25) :
+                    if continued == times :
+                        writeLabel(type, continueType, index, baseDate, labelDir, group, times)
+                        print "[" + type + "][" + str(index + 1) + "]" + "(" + str(continued) + ")" + str(baseDate) + str(group)
+
+                if continued == breakNumber :
                     temp = 1
                     breakNumber = []
                     while True :
@@ -94,10 +94,12 @@ def continuedNumber(fromDate, toDate, type, continueNumber, continueType, labelD
                 continued = 1
                 base = condition
                 group = [int(posInfo[0])]
-                baseNumber = int(posInfo[0])
-                baseDate   = posInfo[1]
+                # baseNumber = int(posInfo[0])
+                baseDate   = posInfo[1:]
             i = i + 1
     print maxContinuedNumber
-
-
-continuedNumber("20151208", "20151208", "XJSSC", 6, "even-od", "XJLabel")
+    return allMessage
+for type in ["even-odd", "size"] :
+    continuedNumber("20070401", "20151202", "CQSSC", 6, type, "CQLabel")
+    continuedNumber("20080928", "20151202", "JXSSC", 6, type, "JXLabel")
+    continuedNumber("20070812", "20151208", "XJSSC", 6, type, "XJLabel")
