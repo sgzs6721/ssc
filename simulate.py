@@ -250,9 +250,12 @@ def getSplitData(fromDate, toDate, type) :
         splitData.append([])
 
     for number in data :
-        realNumber = number.split(" ")[2]
+        info       = number.split(" ")
+        realNumber = info[2]
+        date       = info[0]
+        time       = info[1]
         for i in range(5) :
-            splitData[i].append(int(realNumber[i]))
+            splitData[i].append(" ".join([realNumber[i], date, time]))
 
     return splitData
 
@@ -270,13 +273,14 @@ def continuedNumber(fromDate, toDate, type, continueNumber, continueType) :
     maxContinuedNumber   = [1, 1, 1, 1, 1]
     afterContinuedNumber = [0, 0, 0, 0, 0]
     for index, pos in enumerate(splitData) :
-        baseNumber = pos[0]
+        baseNumber = int(pos[0].split(" ")[0])
         base = getBaseInfo(continueType, baseNumber)
         condition = ""
         continued = 1
         i = 1
         while i < len(pos) :
-            condition = getBaseInfo(continueType, pos[i])
+            posInfo = pos[i].split(" ")
+            condition = getBaseInfo(continueType, int(posInfo[0]))
             if condition == base :
                 continued = continued + 1
                 if continued > maxContinuedNumber[index] :
@@ -285,19 +289,20 @@ def continuedNumber(fromDate, toDate, type, continueNumber, continueType) :
                 if continued == continueNumber :
                     temp = 1
                     while True :
-                        if condition == getBaseInfo(continueType,pos[i + temp]) :
+                        if condition == getBaseInfo(continueType, int(pos[i + temp].split(" ")[0])) :
                             break
                         temp = temp + 1
                         if i + temp == len(pos) : break
-                    print temp
+                    if temp > 7 :
+                        print "[" + str(index) + "]" + " ".join([str(temp), posInfo[1], posInfo[2]])
                 continued = 1
                 base = condition
             i = i + 1
-        pprint(maxContinuedNumber)
-        exit()
+    pprint(maxContinuedNumber)
+        # exit()
 
 # simulateDirectBet("20151206", "20151206", "XJSSC", 9, 0, 1, False, range(3,5), "CQLOG")
 # simulateGroupBet("20070812", "20151206","XJSSC")
-continuedNumber("20070812", "20070812", "XJSSC", 4, "even-odd")
+continuedNumber("20080928", "20151202", "JXSSC", 7, "even-od")
 # simulateGroupBet(20151201, 20151204, "JXSSC", 9, 2, range(2,5), "JXLOG")
 # simulateDirectBet(20151201008, 20151201100, "XJSSC", 9, 3, range(1,5), "XJLOG")
