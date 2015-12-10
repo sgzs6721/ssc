@@ -14,33 +14,37 @@ def getBeautifulSoup(url) :
     return soup
 
 def writeDataToFile(soup, fileName, dir) :
-    div = soup.findAll(attrs={"class":"history-tab"})
-    if len(div) == 0 :
-        print  fileName + ", no data!"
+    if os.path.exists(dir + "/" + fileName) :
+        print "Skip " + dir + "/" + fileName
         return
-    dataObject = open(dir + "/" + fileName, "w+")
-    for i in range(1,4) :
-        column = div[0].findAll(attrs={"class":"tr-odd" + str(i)})[0].tbody.findAll("tr")
-        for index in column :
-            td = index.findAll("td")
-            if not td[0].text == '' :
-                dataNumber = td[1].text.encode("utf8")
-                frontThree = 0
-                endThree   = 0
-                if not (dataNumber == "" or dataNumber == '- -'):
-                    frontThree = checkThree(dataNumber[0:3])
-                    endThree   = checkThree(dataNumber[2:])
-                else :
-                    continue
-                lineNumber = " ".join([fileName+td[0].text.encode("utf8"), "time",
-                                       dataNumber, frontThree, endThree])
-                dataObject.write(lineNumber)
-                dataObject.write("\n")
+    else :
+        div = soup.findAll(attrs={"class":"history-tab"})
+        if len(div) == 0 :
+            print  fileName + ", no data!"
+            return
+        dataObject = open(dir + "/" + fileName, "w")
+        for i in range(1,4) :
+            column = div[0].findAll(attrs={"class":"tr-odd" + str(i)})[0].tbody.findAll("tr")
+            for index in column :
+                td = index.findAll("td")
+                if not td[0].text == '' :
+                    dataNumber = td[1].text.encode("utf8")
+                    frontThree = 0
+                    endThree   = 0
+                    if not (dataNumber == "" or dataNumber == '- -'):
+                        frontThree = checkThree(dataNumber[0:3])
+                        endThree   = checkThree(dataNumber[2:])
+                    else :
+                        continue
+                    lineNumber = " ".join([fileName+td[0].text.encode("utf8"), utils.getTime(120, td[0].text.encode("utf8"), dir),
+                                           dataNumber, frontThree, endThree])
+                    dataObject.write(lineNumber)
+                    dataObject.write("\n")
 
-            else :
-                break
-    dataObject.close()
-    print "Create File " + fileName
+                else :
+                    break
+        dataObject.close()
+        print "Create File " + dir + "/" + fileName
 
 def writeDataToFileXJ(soup, fileName, dir) :
     tableTr = soup.table.findAll("tr")
@@ -94,7 +98,7 @@ def getHistoryXJ(dateYear, dateMonth, dateDay, dataFolder) :
         os.makedirs(dataFolder)
 
     if os.path.exists(dataFolder + "/" + fromDate) :
-        print "skip " + fromDate
+        print "skip " + dataFolder + "/" +  fromDate
     else :
         url = "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw&drawBegin="\
          + fromDate + "&drawEnd=" + endDate
@@ -109,7 +113,7 @@ def getHistory(dateYear, dateMonth, dateDay, dataFolder, lotId) :
     [dateYear, dateMonth, dateDay] = currentDate[2:]
 
     if os.path.exists(dataFolder + "/" + fromDate) :
-        print "skip " + fromDate
+        print "skip " + dataFolder + "/" + fromDate
 
     url = "http://chart.cp.360.cn/kaijiang/kaijiang?lotId="+lotId+"&spanType=2&span="+fromDate+"_" + fromDate
     s = getBeautifulSoup(url)
@@ -154,7 +158,7 @@ def writeArrayToFile(array, date, dataFolder) :
         os.makedirs(dataFolder)
 
     if os.path.exists(dataFolder + "/" + date) :
-        print "skip " + date
+        print "skip " + dataFolder + "/" + date
     else :
         outputObject = open(dataFolder + "/" + date, "w+")
         totalNumber = len(array)
@@ -164,66 +168,19 @@ def writeArrayToFile(array, date, dataFolder) :
             dataNumber = info[1]
             frontThree = checkThree(dataNumber[0:3])
             endThree   = checkThree(dataNumber[2:])
-            time = getTime(totalNumber, dateNumber, dataFolder)
+            time = utils.getTime(totalNumber, dateNumber, dataFolder)
             newLine = " ".join([date + dateNumber, time,
                                 dataNumber, frontThree, endThree])
             outputObject.write(newLine)
             outputObject.write("\n")
         outputObject.close()
+        print "Create File " + dataFolder + "/" + date
 
-def getTime(total, number, dataFolder) :
-    intNumber = int(number)
-    hour = 0
-    min  = 0
-    if dataFolder == "CQSSC" :
-
-        if total > 72 :
-            if intNumber < 24 :
-                [hour, min] = calculateTime(intNumber, 0, 0, 5, 0)
-            else :
-                if intNumber > 96 :
-                    [hour, min] = calculateTime(intNumber - 96, 22, 0, 5, 0)
-                else :
-                    [hour, min] = calculateTime(intNumber - 23, 9, 50, 10, 0)
-        else :
-            [hour, min] = calculateTime(intNumber, 9, 50, 10, 0)
-
-    elif dataFolder == "JXSSC" :
-        step = calculateStep(intNumber)
-        [hour, min] = calculateTime(intNumber, 8, 59, 10, step)
-
-    else :
-        return "null"
-
-    stringHour = str(hour)
-    stringMin  = str(min)
-
-    if hour < 10 :
-        stringHour = "0" + stringHour
-    if hour == 24 :
-        stringHour = "00"
-    if min < 10 :
-        stringMin  = "0" + stringMin
-
-    return stringHour + ":" + stringMin + ":" + "00"
-
-def calculateStep(number) : #expected : 7767767767764
-    bigStep    = 3
-    big        = number / 20
-    bigReserve = number % 20
-    small = bigReserve / 7
-    return big * bigStep + small
-
-def calculateTime(intNumber, startHour, startMin, step, adjust) :
-    totalMove = intNumber * step  + startMin + adjust
-    hour = startHour + totalMove / 60
-    min  = totalMove % 60
-    return [hour, min]
-
-generateHistory("CQSSC", "cqssc.txt") # end 20151202
-generateHistory("JXSSC", "jxssc.txt") # end 20151202
-getAllHistoryXJ(2007, 8, 12, "XJSSC") # end current date
+# get data from file to file(formated like XJ)
+# generateHistory("CQSSC", "cqssc.txt") # end 20151202
+# generateHistory("JXSSC", "jxssc.txt") # end 20151202
+# getAllHistoryXJ(2007, 8, 12, "XJSSC") # end current date
 
 # get from 360
-# getAllHistory(2009, 8, 24, "JXSSC", "258001")
-# getAllHistory(2009, 12, 13, "CQSSC", "255401")
+# getAllHistory(2015, 12, 1, "JXSSC_360", "258001")
+# getAllHistory(2009, 12, 13, "CQSSC_360", "255401")

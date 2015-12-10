@@ -67,3 +67,52 @@ def readDataFromFile(type, fromDate, toDate) :
     else :
         # TODO
         return data
+
+def getTime(total, number, dataFolder) :
+    intNumber = int(number)
+    hour = 0
+    min  = 0
+    if dataFolder[0:5] == "CQSSC" :
+
+        if total > 72 :
+            if intNumber < 24 :
+                [hour, min] = calculateTime(intNumber, 0, 0, 5, 0)
+            else :
+                if intNumber > 96 :
+                    [hour, min] = calculateTime(intNumber - 96, 22, 0, 5, 0)
+                else :
+                    [hour, min] = calculateTime(intNumber - 23, 9, 50, 10, 0)
+        else :
+            [hour, min] = calculateTime(intNumber, 9, 50, 10, 0)
+
+    elif dataFolder[0:5] == "JXSSC" :
+        step = calculateStep(intNumber)
+        [hour, min] = calculateTime(intNumber, 8, 59, 10, step)
+
+    else :
+        return "null"
+
+    stringHour = str(hour)
+    stringMin  = str(min)
+
+    if hour < 10 :
+        stringHour = "0" + stringHour
+    if hour == 24 :
+        stringHour = "00"
+    if min < 10 :
+        stringMin  = "0" + stringMin
+
+    return stringHour + ":" + stringMin + ":" + "00"
+
+def calculateStep(number) : #expected : 7767767767764
+    bigStep    = 3
+    big        = number / 20
+    bigReserve = number % 20
+    small = bigReserve / 7
+    return big * bigStep + small
+
+def calculateTime(intNumber, startHour, startMin, step, adjust) :
+    totalMove = intNumber * step  + startMin + adjust
+    hour = startHour + totalMove / 60
+    min  = totalMove % 60
+    return [hour, min]
