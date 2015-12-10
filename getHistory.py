@@ -70,7 +70,7 @@ def writeDataToFileXJ(soup, fileName, dir) :
         dataObject.write("\n")
 
     dataObject.close()
-    print "Create File " + fileName
+    print "Create File " + dir + "/" +fileName
 
 def checkThree(dataNumber) :
     if dataNumber[0] == dataNumber[1] :
@@ -179,7 +179,7 @@ def writeArrayToFile(array, date, dataFolder) :
 # get data from file to file(formated like XJ)
 # generateHistory("CQSSC", "cqssc.txt") # end 20151202
 # generateHistory("JXSSC", "jxssc.txt") # end 20151202
-# getAllHistoryXJ(2007, 8, 12, "XJSSC") # end current date
+getAllHistoryXJ(2015, 8, 12, "XJSSC") # end current date
 
 # get from 360
 # getAllHistory(2015, 12, 1, "JXSSC_360", "258001")
