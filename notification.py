@@ -170,9 +170,10 @@ def continuedNumber(type, breakNumber, labelDir) :
     for index, pos in enumerate(splitData) :
         if index < 5 :
             message = calculatePos(index, pos, breakNumber, labelDir)
+            allMessage.append(message)
         else :
             calculateGroup(index, pos, labelDir)
-        allMessage.append(message)
+            allMessage.append(message)
 
     return allMessage
 
@@ -218,13 +219,13 @@ def calculatePos(index, pos, breakNumber, labelDir) :
 
         while i < len(pos) :
             posInfo = pos[i].split(" ")
+            breakContinuedNumber = 1
             condition = getBaseInfo(continueType, int(posInfo[0]))
             if condition == base :
                 continued = continued + 1
                 group.append(int(posInfo[0]))
-                breakContinuedNumber = 1
 
-                if continued > 9 :
+                if continued > 6 :
                     continueInfo = {
                         "index" :index,
                         "date" : baseDate,
@@ -261,4 +262,6 @@ def calculatePos(index, pos, breakNumber, labelDir) :
 
     return message
 
-pprint(continuedNumber("XJSSC", 2, "label"))
+for type in ["CQSSC", "JXSSC", "XJSSC"] :
+
+    pprint(continuedNumber(type, 2, type +"_label"))
