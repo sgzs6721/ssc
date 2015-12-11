@@ -89,12 +89,6 @@ def getUrl(type, date, index) :
     else :
         return ""
 
-def getTotalNumber(type) :
-    if type == "CQSSC" :
-        return 120
-    elif type == "JXSSC" :
-        return 84
-
 def getTime(number, type) :
     intNumber = int(number)
     hour = 0
@@ -168,16 +162,19 @@ def getSplitData(type) :
 
     return splitData
 
-def continuedNumber(type, breakNumber, continueType, labelDir) :
+def continuedNumber(type, breakNumber, labelDir) :
 
     splitData = getSplitData(type)
     allMessage = []
-    # timer = 0
+
     for index, pos in enumerate(splitData) :
         if index < 5 :
-            calculatePos(index, pos, breakNumber, continueType, labelDir)
+            message = calculatePos(index, pos, breakNumber, labelDir)
         else :
             calculateGroup(index, pos, labelDir)
+        allMessage.append(message)
+
+    return allMessage
 
 def calculateGroup(index, data, labelDir) :
     print ""
@@ -189,7 +186,9 @@ def getBaseInfo(continuedType, number) :
         return number > 4
 
 def writeLabel(index, baseDate, labelDir, group) :
-    fileObject = open(labelDir + "/" + baseDate[0] + "[" + str(index + 1) + "]", "w")
+    if not os.path.exists(labelDir) :
+        os.makedirs(labelDir)
+    fileObject = open(labelDir + "/" + baseDate[0] + "-" + str(index + 1), "w")
     fileObject.write(str(baseDate) + "=>[" + str(index + 1) + "]=>" + str(group) + "(" + str(len(group)) + ")")
     fileObject.close()
 
@@ -199,65 +198,67 @@ def isLabelExist(index, baseDate, labelDir):
     else :
         return False
 
-def getInfo(info) :
-    print ""
-
-def calculatePos(index, pos, breakNumber, continueType, labelDir) :
-    maxContinuedNumber   = [1, 1, 1, 1, 1]
-    breakContinuedNumber = [1, 1, 1, 1, 1]
-    continueInfo         = []
-    breakInfo            = []
-
+def calculatePos(index, pos, breakNumber, labelDir) :
     baseNumber = int(pos[0].split(" ")[0])
     baseDate   = pos[0].split(" ")[1:]
-    base = getBaseInfo(continueType, baseNumber)
-    condition = ""
-    continued = 1
-    i = 1
-    group = [baseNumber]
-    while i < len(pos) :
-        posInfo = pos[i].split(" ")
-        condition = getBaseInfo(continueType, int(posInfo[0]))
-        if condition == base :
-            continued = continued + 1
-            group.append(int(posInfo[0]))
-            breakContinuedNumber[index] = 0
+    message    = []
 
-            if continued > maxContinuedNumber[index] :
-                maxContinuedNumber[index] = continued
+    for continueType in ["even-odd", "size"] :
+
+        breakContinuedNumber = 1
+        continueInfo         = {}
+        breakInfo            = {}
+        base = getBaseInfo(continueType, baseNumber)
+
+        condition = ""
+        continued = 1
+        i = 1
+
+        group = [baseNumber]
+
+        while i < len(pos) :
+            posInfo = pos[i].split(" ")
+            condition = getBaseInfo(continueType, int(posInfo[0]))
+            if condition == base :
+                continued = continued + 1
+                group.append(int(posInfo[0]))
+                breakContinuedNumber = 1
+
                 if continued > 9 :
-                    continueInfo[index] = {
+                    continueInfo = {
+                        "index" :index,
                         "date" : baseDate,
                         "continue" : continued,
                         "group" : group,
                         "type"  : continueType
                     }
-        else :
-            maxContinuedNumber[index] = 1
+            else :
+                if continued > breakNumber : # Statistic for break and then continued number
+                    breakContinuedNumber = 0
+                    breakInfo = {
+                        "index" : index,
+                        "date" : baseDate,
+                        "continue" : continued,
+                        "group" : group,
+                        "type"  : continueType,
+                        "break" : int(posInfo[0])
+                    }
 
-            if continued > breakNumber : # Statistic for break and then continued number
-                breakContinuedNumber[index] = 0
-                breakInfo[index] = {
-                    "date" : baseDate,
-                    "continue" : continued,
-                    "group" : group,
-                    "type"  : continueType
-                }
+                continued = 1
+                base = condition
+                group = [int(posInfo[0])]
+                baseDate   = posInfo[1:]
 
-            continued = 1
-            base = condition
-            group = [int(posInfo[0])]
-            baseDate   = posInfo[1:]
-        i = i + 1
+            i = i + 1
 
-    for i in maxContinuedNumber :
-        if i > 9 :
+        if continued > 9 :
             if not isLabelExist(index, baseDate, labelDir) :
-                getInfo(continueInfo)
+                message.append(continueInfo)
                 writeLabel(index, baseDate, labelDir, group)
 
-    for j,i in enumerate(breakContinuedNumber) :
-        if i == 0 :
-            getInfo(breakInfo[j])
+        if breakContinuedNumber == 0 :
+            message.append(breakInfo)
 
-continuedNumber("XJSSC", 6, "even-odd", "label")
+    return message
+
+pprint(continuedNumber("XJSSC", 2, "label"))
