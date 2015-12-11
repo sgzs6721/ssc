@@ -69,10 +69,10 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
                     maxContinuedNumber[index] = continued
             else :
                 # Find more than N times continued detail
-                # for times in range(6, 25) : # Generate label file
-                #     if continued == times :
-                #         writeLabel(type, continueType, index, baseDate, labelDir, group, times)
-                #         print "[" + type + "][" + str(index + 1) + "]" + "(" + str(continued) + ")" + str(baseDate) + str(group)
+                for times in range(15, 25) : # Generate label file
+                    if continued == times :
+                        # writeLabel(type, continueType, index, baseDate, labelDir, group, times)
+                        print "[" + type + "][" + str(index + 1) + "]" + "(" + str(continued) + ")" + str(baseDate) + str(group)
 
                 if continued == breakNumber : # Statistic for break and then continued number
                     temp = 1
@@ -84,10 +84,10 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
                         temp = temp + 1
                         breakNumbers.append(int(pos[i + temp].split(" ")[0]))
                         if i + temp == len(pos) : break
-                    if temp > 6 :
+                    if temp > 1 :
                     # if False : # Do not show break Numbers
                         timer = timer + 1
-                        printInfo = str(timer) + "(" + str(index) + ")=>"
+                        printInfo = "(" + str(index) + ")=>[" + str(continued) + "]"
                         printInfo = printInfo + str(group) + "=>" + "[" + posInfo[0] + "]"
                         printInfo = printInfo + "(" + " ".join([posInfo[1], posInfo[2]]) + ")" + "=>"
                         printInfo = printInfo + str(breakNumbers)
@@ -106,4 +106,4 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
 #     continuedNumber("20070401", "20151202", "CQSSC", 6, type, "CQLabel")
 #     continuedNumber("20080928", "20151202", "JXSSC", 6, type, "JXLabel")
 #     continuedNumber("20070812", "20151208", "XJSSC", 6, type, "XJLabel")
-continuedNumber("20070812", "20151208", "XJSSC", 6, "even-odd", "XJLabel")
+continuedNumber("20070812", "20151208", "XJSSC", 16, "even-odd", "XJLabel")

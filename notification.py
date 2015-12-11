@@ -2,6 +2,7 @@
 # import time
 import datetime
 import urllib2
+import os
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
 
@@ -11,7 +12,7 @@ def getLatestData(type) :
     for i in range(0, 2) :
         url = getUrl(type, date, i)
         soup = getBeautifulSoup(url)
-        oneDayData = fetchData(soup, type)
+        oneDayData = fetchData(soup, type, date[i])
         if not len(oneDayData) == 0 :
             for record in oneDayData :
                 dataArray.append(record)
@@ -19,7 +20,7 @@ def getLatestData(type) :
             return []
     return dataArray
 
-def fetchData(soup, type) :
+def fetchData(soup, type, date) :
     data = []
     if type == "XJSSC" :
         tableTr = soup.table.findAll("tr")
@@ -30,15 +31,36 @@ def fetchData(soup, type) :
                 print "No data!"
                 return []
             dataNumber = realTd[2].text.encode("utf8").replace(" ",'')
-            lineNumber = " ".join([realTd[0].text.encode("utf8"),
+            lineNumber = " ".join([date + "-" + realTd[0].text.encode("utf8")[8:],
                                    realTd[1].text.encode("utf8"),
                                    dataNumber, checkThree(dataNumber[0:3]),
                                    checkThree(dataNumber[2:])])
             data.append(lineNumber)
     else :
-        print "cq and jx to be continued!"
+        div = soup.findAll(attrs={"class":"history-tab"})
+        if len(div) == 0 :
+            print  "No data!"
+            return []
+        for i in range(1,4) :
+            column = div[0].findAll(attrs={"class":"tr-odd" + str(i)})[0].tbody.findAll("tr")
+            for index in column :
+                td = index.findAll("td")
+                if not td[0].text == '' :
+                    dataNumber = td[1].text.encode("utf8")
+                    frontThree = 0
+                    endThree   = 0
+                    if not (dataNumber == "" or dataNumber == '- -'):
+                        frontThree = checkThree(dataNumber[0:3])
+                        endThree   = checkThree(dataNumber[2:])
+                    else :
+                        continue
 
-
+                    lineNumber = " ".join([date + "-" + td[0].text.encode("utf8"), getTime(td[0].text.encode("utf8"), type),
+                                           dataNumber, frontThree, endThree])
+                    data.append(lineNumber)
+                else :
+                    break
+    return data
 def checkThree(dataNumber) :
     if dataNumber[0] == dataNumber[1] :
         return "1"
@@ -57,24 +79,185 @@ def getBeautifulSoup(url) :
 def getUrl(type, date, index) :
     if type == "XJSSC" :
         return "http://www.xjflcp.com/trend/analyseSSC.do?operator=goldSscTrend&type=draw"\
-               + "&drawBegin=" + date[index] + "&drawEnd=" + date[index + 1]
+               + "&drawBegin=" + date[index].replace("-","") + "&drawEnd=" + date[index + 1].replace("-","")
     elif type == "JXSSC" :
         return "http://chart.cp.360.cn/kaijiang/kaijiang?lotId=258001&spanType=2&span="\
-               + date[index + 1] + "_" + date[index + 1]
+               + date[index] + "_" + date[index]
     elif type == "CQSSC" :
         return "http://chart.cp.360.cn/kaijiang/kaijiang?lotId=255401&spanType=2&span="\
-               + date[index + 1] + "_" + date[index + 1]
+               + date[index] + "_" + date[index]
     else :
         return ""
 
+def getTotalNumber(type) :
+    if type == "CQSSC" :
+        return 120
+    elif type == "JXSSC" :
+        return 84
+
+def getTime(number, type) :
+    intNumber = int(number)
+    hour = 0
+    min  = 0
+    if type[0:5] == "CQSSC" :
+
+        if intNumber < 24 :
+            [hour, min] = calculateTime(intNumber, 0, 0, 5, 0)
+        else :
+            if intNumber > 96 :
+                [hour, min] = calculateTime(intNumber - 96, 22, 0, 5, 0)
+            else :
+                [hour, min] = calculateTime(intNumber - 23, 9, 50, 10, 0)
+    elif type[0:5] == "JXSSC" :
+        step = calculateStep(intNumber)
+        [hour, min] = calculateTime(intNumber, 8, 59, 10, step)
+
+    else :
+        return "null"
+
+    stringHour = str(hour)
+    stringMin  = str(min)
+
+    if hour < 10 :
+        stringHour = "0" + stringHour
+    if hour == 24 :
+        stringHour = "00"
+    if min < 10 :
+        stringMin  = "0" + stringMin
+
+    return stringHour + ":" + stringMin + ":" + "00"
+
+def calculateStep(number) : #expected : 7767767767764
+    bigStep    = 3
+    big        = number / 20
+    bigReserve = number % 20
+    small = bigReserve / 7
+    return big * bigStep + small
+
+def calculateTime(intNumber, startHour, startMin, step, adjust) :
+    totalMove = intNumber * step  + startMin + adjust
+    hour = startHour + totalMove / 60
+    min  = totalMove % 60
+    return [hour, min]
 
 def getDataDate() :
-    yesterday = (datetime.date.today() + datetime.timedelta(days=-1)).strftime("%Y%m%d")
-    today     = datetime.date.today().strftime("%Y%m%d")
-    tomorrow  = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y%m%d")
+    yesterday = (datetime.date.today() + datetime.timedelta(days=-1)).strftime("%Y-%m-%d")
+    today     = datetime.date.today().strftime("%Y-%m-%d")
+    tomorrow  = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     return [yesterday, today, tomorrow]
 
-getLatestData("JXSSC")
-# if continued >= breakNumber : # for notification
-#
-#     allMessage.append(getMessage(type, index, continued, continueType, baseDate, group))
+def getSplitData(type) :
+    data = getLatestData(type)
+
+    splitData = []
+    for i in range(7) :
+        splitData.append([])
+
+    for number in data :
+        info       = number.split(" ")
+        date       = info[0]
+        time       = info[1]
+        number     = info[2]
+        front3     = info[3]
+        end3       = info[4]
+
+        for i in range(5) :
+            splitData[i].append(" ".join([number[i], date, time]))
+        splitData[5].append(" ".join([front3, date, time]))
+        splitData[6].append(" ".join([end3, date, time]))
+
+    return splitData
+
+def continuedNumber(type, breakNumber, continueType, labelDir) :
+
+    splitData = getSplitData(type)
+    allMessage = []
+    # timer = 0
+    for index, pos in enumerate(splitData) :
+        if index < 5 :
+            calculatePos(index, pos, breakNumber, continueType, labelDir)
+        else :
+            calculateGroup(index, pos, labelDir)
+
+def calculateGroup(index, data, labelDir) :
+    print ""
+
+def getBaseInfo(continuedType, number) :
+    if continuedType == "even-odd" :
+        return number % 2
+    else :
+        return number > 4
+
+def writeLabel(index, baseDate, labelDir, group) :
+    fileObject = open(labelDir + "/" + baseDate[0] + "[" + str(index + 1) + "]", "w")
+    fileObject.write(str(baseDate) + "=>[" + str(index + 1) + "]=>" + str(group) + "(" + str(len(group)) + ")")
+    fileObject.close()
+
+def isLabelExist(index, baseDate, labelDir):
+    if os.path.exists(labelDir + "/" + baseDate[0] + "[" + str(index + 1) + "]") :
+        return True
+    else :
+        return False
+
+def getInfo(info) :
+    print ""
+
+def calculatePos(index, pos, breakNumber, continueType, labelDir) :
+    maxContinuedNumber   = [1, 1, 1, 1, 1]
+    breakContinuedNumber = [1, 1, 1, 1, 1]
+    continueInfo         = []
+    breakInfo            = []
+
+    baseNumber = int(pos[0].split(" ")[0])
+    baseDate   = pos[0].split(" ")[1:]
+    base = getBaseInfo(continueType, baseNumber)
+    condition = ""
+    continued = 1
+    i = 1
+    group = [baseNumber]
+    while i < len(pos) :
+        posInfo = pos[i].split(" ")
+        condition = getBaseInfo(continueType, int(posInfo[0]))
+        if condition == base :
+            continued = continued + 1
+            group.append(int(posInfo[0]))
+            breakContinuedNumber[index] = 0
+
+            if continued > maxContinuedNumber[index] :
+                maxContinuedNumber[index] = continued
+                if continued > 9 :
+                    continueInfo[index] = {
+                        "date" : baseDate,
+                        "continue" : continued,
+                        "group" : group,
+                        "type"  : continueType
+                    }
+        else :
+            maxContinuedNumber[index] = 1
+
+            if continued > breakNumber : # Statistic for break and then continued number
+                breakContinuedNumber[index] = 0
+                breakInfo[index] = {
+                    "date" : baseDate,
+                    "continue" : continued,
+                    "group" : group,
+                    "type"  : continueType
+                }
+
+            continued = 1
+            base = condition
+            group = [int(posInfo[0])]
+            baseDate   = posInfo[1:]
+        i = i + 1
+
+    for i in maxContinuedNumber :
+        if i > 9 :
+            if not isLabelExist(index, baseDate, labelDir) :
+                getInfo(continueInfo)
+                writeLabel(index, baseDate, labelDir, group)
+
+    for j,i in enumerate(breakContinuedNumber) :
+        if i == 0 :
+            getInfo(breakInfo[j])
+
+continuedNumber("XJSSC", 6, "even-odd", "label")
