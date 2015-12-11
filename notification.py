@@ -16,8 +16,8 @@ def getLatestData(type) :
         if not len(oneDayData) == 0 :
             for record in oneDayData :
                 dataArray.append(record)
-        else :
-            return []
+        # else :
+        #     return []
     return dataArray
 
 def fetchData(soup, type, date) :
@@ -172,13 +172,13 @@ def continuedNumber(type, breakNumber, labelDir) :
             message = calculatePos(index, pos, breakNumber, labelDir)
             allMessage.append(message)
         else :
-            calculateGroup(index, pos, labelDir)
+            message = calculateGroup(index, pos, labelDir)
             allMessage.append(message)
 
     return allMessage
 
 def calculateGroup(index, data, labelDir) :
-    print ""
+    return []
 
 def getBaseInfo(continuedType, number) :
     if continuedType == "even-odd" :
@@ -262,6 +262,10 @@ def calculatePos(index, pos, breakNumber, labelDir) :
 
     return message
 
-for type in ["CQSSC", "JXSSC", "XJSSC"] :
+def sendMessage(info) :
+    pprint(info)
 
-    pprint(continuedNumber(type, 2, type +"_label"))
+allInfo = {}
+for type in ["CQSSC", "JXSSC", "XJSSC"] :
+    allInfo[type] = continuedNumber(type, 2, type +"_label")
+sendMessage(allInfo)
