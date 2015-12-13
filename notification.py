@@ -16,8 +16,6 @@ def getLatestData(type) :
         if not len(oneDayData) == 0 :
             for record in oneDayData :
                 dataArray.append(record)
-        # else :
-        #     return []
     return dataArray
 
 def fetchData(soup, type, date) :
@@ -28,7 +26,7 @@ def fetchData(soup, type, date) :
         for tr in realTr :
             realTd = tr.findAll("td")[0:3]
             if realTd[2].text.encode("utf8") == "&nbsp;" :
-                print "No data!"
+                print "[" + type + " " + date + "]" + "No data!"
                 return []
             dataNumber = realTd[2].text.encode("utf8").replace(" ",'')
             lineNumber = " ".join([date + "-" + realTd[0].text.encode("utf8")[8:],
@@ -39,7 +37,7 @@ def fetchData(soup, type, date) :
     else :
         div = soup.findAll(attrs={"class":"history-tab"})
         if len(div) == 0 :
-            print  "No data!"
+            print "[" + type + " " + date + "]" + "No data!"
             return []
         for i in range(1,4) :
             column = div[0].findAll(attrs={"class":"tr-odd" + str(i)})[0].tbody.findAll("tr")
@@ -144,21 +142,22 @@ def getSplitData(type) :
     data = getLatestData(type)
 
     splitData = []
-    for i in range(7) :
-        splitData.append([])
+    if data :
+        for i in range(7) :
+            splitData.append([])
 
-    for number in data :
-        info       = number.split(" ")
-        date       = info[0]
-        time       = info[1]
-        number     = info[2]
-        front3     = info[3]
-        end3       = info[4]
+        for number in data :
+            info       = number.split(" ")
+            date       = info[0]
+            time       = info[1]
+            number     = info[2]
+            front3     = info[3]
+            end3       = info[4]
 
-        for i in range(5) :
-            splitData[i].append(" ".join([number[i], date, time]))
-        splitData[5].append(" ".join([front3, date, time]))
-        splitData[6].append(" ".join([end3, date, time]))
+            for i in range(5) :
+                splitData[i].append(" ".join([number[i], date, time]))
+            splitData[5].append(" ".join([front3, date, time]))
+            splitData[6].append(" ".join([end3, date, time]))
 
     return splitData
 
@@ -167,13 +166,14 @@ def continuedNumber(type, breakNumber, labelDir) :
     splitData = getSplitData(type)
     allMessage = []
 
-    for index, pos in enumerate(splitData) :
-        if index < 5 :
-            message = calculatePos(index, pos, breakNumber, labelDir)
-            allMessage.append(message)
-        else :
-            message = calculateGroup(index, pos, labelDir)
-            allMessage.append(message)
+    if splitData :
+        for index, pos in enumerate(splitData) :
+            if index < 5 :
+                message = calculatePos(index, pos, breakNumber, labelDir)
+                allMessage.append(message)
+            else :
+                message = calculateGroup(index, pos, labelDir)
+                allMessage.append(message)
 
     return allMessage
 
@@ -267,5 +267,8 @@ def sendMessage(info) :
 
 allInfo = {}
 for type in ["CQSSC", "JXSSC", "XJSSC"] :
-    allInfo[type] = continuedNumber(type, 2, type +"_label")
+    data = continuedNumber(type, 2, type + "_label")
+    if data :
+        allInfo[type] = continuedNumber(type, 6, type +"_label")
+
 sendMessage(allInfo)
