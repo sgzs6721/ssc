@@ -3,6 +3,7 @@
 import datetime
 import urllib2
 import os
+import string
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
 
@@ -252,23 +253,80 @@ def calculatePos(index, pos, breakNumber, labelDir) :
 
             i = i + 1
 
-        if continued > 9 :
+        if continued > 3 :
             if not isLabelExist(index, baseDate, labelDir) :
-                message.append(continueInfo)
-                writeLabel(index, baseDate, labelDir, group)
+                if continueInfo :
+                    message.append(continueInfo)
+                    writeLabel(index, baseDate, labelDir, group)
 
         if breakContinuedNumber == 0 :
-            message.append(breakInfo)
+            if breakInfo :
+                message.append(breakInfo)
 
     return message
 
 def sendMessage(info) :
-    pprint(info)
+    content = ""
+    positionArray = ["万", "千", "百", "十", "个"]
+    numberTypeEvenOdd    = ["偶", "奇"]
+
+    tepl = string.Template("""
+    彩种: $title
+    模式: $mode
+    位置: $position
+    类型: 连续[$continued]期出[$numberType]
+    号码: $group
+    推荐: 投注[$position]位[$suggestType]
+    ======================================
+    """)
+    for key in sorted(info.keys()) :
+        title = ""
+        mode  = ""
+        if key == "CQSSC" :
+            title = "重庆"
+        elif key == "JXSSC" :
+            title = "江西"
+        elif key == "XJSSC" :
+            title = "新疆"
+        # print key
+        # print info[key]
+        for pos in info[key] :
+            if pos :
+                for i in pos :
+                    numberType  = ""
+                    suggestType = ""
+                    numbers     = str(i.get("group"))
+                    if i.get("break") :
+                        mode = "N-B"
+                        numbers =  numbers+ " => [" + str(i.get("break")) + "]"
+                    else :
+                        mode = "N"
+                    if i.get("continueType") == "even-odd" :
+                        numberType = numberTypeEvenOdd[i.get("group")[0] % 2]
+                        suggestType = numberTypeEvenOdd[(i.get("group")[0] + 1) % 2]
+                    else :
+                        if i.get("group")[0] > 4 :
+                            numberType = "大"
+                            suggestType = "小"
+                        else :
+                            numberType = "小"
+                            suggestType = "大"
+                    content = content + tepl.substitute(
+                        mode = mode,
+                        position = positionArray[i.get("index")],
+                        continued = i.get("continue"),
+                        numberType = numberType,
+                        group = numbers,
+                        suggestType = suggestType,
+                        title = title + "时时彩",
+                        breaked = i.get("break")
+                    )
+    print content
 
 allInfo = {}
 for type in ["CQSSC", "JXSSC", "XJSSC"] :
     data = continuedNumber(type, 2, type + "_label")
     if data :
-        allInfo[type] = continuedNumber(type, 6, type +"_label")
+        allInfo[type] = data
 
 sendMessage(allInfo)
