@@ -1,6 +1,7 @@
 #encoding: utf-8
 # import time
 import datetime
+import urllib
 import urllib2
 import os
 import string
@@ -286,7 +287,7 @@ def getMessage(info) :
 """彩种: $title
 模式: $mode
 位置: $position
-时间: [$date]-[$breakTime]
+时间: [$date]
 类型: [$position]位连续[$continued]期出[$numberType]
 号码: $group
 推荐: 投注[$position]位[$suggestType]
@@ -324,6 +325,7 @@ def getMessage(info) :
                         else :
                             numberType = "小"
                             suggestType = "大"
+
                     content = content + tepl.substitute(
                         mode = mode,
                         position = positionArray[i.get("index")],
@@ -333,10 +335,32 @@ def getMessage(info) :
                         suggestType = suggestType,
                         title = title + "时时彩",
                         breaked = i.get("break"),
-                        date    = i.get("date")[0] + ":" + i.get("date")[1],
-                        breakTime = i.get("breakTime")[0] + ":" + i.get("breakTime")[1]
+                        date    = i.get("date")[0] + ":" + i.get("date")[1]
                     )
     print content
+    return content
+
+def sendMessage(content) :
+    if content :
+        key = "SCU749Tfa80c68db4805b9421f52d360f6614cb565696559f19e"
+        url = "http://sc.ftqq.com/" + key +".send"
+        subject = "时时彩计划方案"
+        parameters = {
+            "text" : subject, "desp" : content,
+            "key"  : key
+        }
+        postData = urllib.urlencode(parameters)
+        request = urllib2.Request(url, postData)
+        # request = urllib2.Request(
+        #     url = url,
+        #     headers = {
+        #         "Content-type" : "application/x-www-form-urlencoded",
+        #         "charset":"UTF-8"
+        #         },
+        #     data = postData
+        # )
+        urllib2.urlopen(request)
+
 
 allInfo = {}
 for type in ["CQSSC", "JXSSC", "XJSSC"] :
@@ -344,4 +368,5 @@ for type in ["CQSSC", "JXSSC", "XJSSC"] :
     if data :
         allInfo[type] = data
 
-getMessage(allInfo)
+messageContent = getMessage(allInfo)
+sendMessage(messageContent)
