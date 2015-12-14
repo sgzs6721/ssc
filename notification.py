@@ -273,6 +273,7 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
         if breakContinuedNumber == 0 :
             if breakInfo :
                 message.append(breakInfo)
+                writeLabel(index, baseDate, labelDir, group)
 
     return message
 
