@@ -4,6 +4,7 @@ import datetime
 import urllib2
 import os
 import string
+import time
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
 
@@ -13,6 +14,8 @@ def getLatestData(type) :
     for i in range(0, 2) :
         url = getUrl(type, date, i)
         soup = getBeautifulSoup(url)
+        if soup == "" :
+            return []
         oneDayData = fetchData(soup, type, date[i])
         if not len(oneDayData) == 0 :
             for record in oneDayData :
@@ -52,7 +55,8 @@ def fetchData(soup, type, date) :
                         frontThree = checkThree(dataNumber[0:3])
                         endThree   = checkThree(dataNumber[2:])
                     else :
-                        continue
+                        # print type + " " + td[0].text + " --"
+                        break
 
                     lineNumber = " ".join([date + "-" + td[0].text.encode("utf8"), getTime(td[0].text.encode("utf8"), type),
                                            dataNumber, frontThree, endThree])
@@ -70,8 +74,14 @@ def checkThree(dataNumber) :
     return "0"
 
 def getBeautifulSoup(url) :
-    req = urllib2.Request(url)
-    res =urllib2.urlopen(req).read()
+    try :
+        req = urllib2.Request(url)
+        res = urllib2.urlopen(req, timeout = 15).read()
+        time.sleep(2)
+    except :
+        print "Error in " + url
+        return ""
+
     soup = BeautifulSoup(res)
     return soup
 
@@ -162,7 +172,7 @@ def getSplitData(type) :
 
     return splitData
 
-def continuedNumber(type, breakNumber, labelDir) :
+def continuedNumber(type, continueNumber, breakNumber, labelDir) :
 
     splitData = getSplitData(type)
     allMessage = []
@@ -170,7 +180,7 @@ def continuedNumber(type, breakNumber, labelDir) :
     if splitData :
         for index, pos in enumerate(splitData) :
             if index < 5 :
-                message = calculatePos(index, pos, breakNumber, labelDir)
+                message = calculatePos(index, pos, continueNumber, breakNumber, labelDir)
                 allMessage.append(message)
             else :
                 message = calculateGroup(index, pos, labelDir)
@@ -200,7 +210,7 @@ def isLabelExist(index, baseDate, labelDir):
     else :
         return False
 
-def calculatePos(index, pos, breakNumber, labelDir) :
+def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
     baseNumber = int(pos[0].split(" ")[0])
     baseDate   = pos[0].split(" ")[1:]
     message    = []
@@ -226,7 +236,7 @@ def calculatePos(index, pos, breakNumber, labelDir) :
                 continued = continued + 1
                 group.append(int(posInfo[0]))
 
-                if continued > 6 :
+                if continued > continueNumber : # Continued Number
                     continueInfo = {
                         "index" :index,
                         "date" : baseDate,
@@ -243,7 +253,8 @@ def calculatePos(index, pos, breakNumber, labelDir) :
                         "continue" : continued,
                         "group" : group,
                         "type"  : continueType,
-                        "break" : int(posInfo[0])
+                        "break" : int(posInfo[0]),
+                        "breakTime" : posInfo[1:]
                     }
 
                 continued = 1
@@ -253,7 +264,7 @@ def calculatePos(index, pos, breakNumber, labelDir) :
 
             i = i + 1
 
-        if continued > 3 :
+        if continued > 7 :
             if not isLabelExist(index, baseDate, labelDir) :
                 if continueInfo :
                     message.append(continueInfo)
@@ -265,20 +276,21 @@ def calculatePos(index, pos, breakNumber, labelDir) :
 
     return message
 
-def sendMessage(info) :
+def getMessage(info) :
     content = ""
     positionArray = ["万", "千", "百", "十", "个"]
-    numberTypeEvenOdd    = ["偶", "奇"]
+    numberTypeEvenOdd    = ["双", "单"]
 
-    tepl = string.Template("""
-    彩种: $title
-    模式: $mode
-    位置: $position
-    类型: 连续[$continued]期出[$numberType]
-    号码: $group
-    推荐: 投注[$position]位[$suggestType]
-    ======================================
-    """)
+    tepl = string.Template(
+"""彩种: $title
+模式: $mode
+位置: $position
+时间: [$date]-[$breakTime]
+类型: [$position]位连续[$continued]期出[$numberType]
+号码: $group
+推荐: 投注[$position]位[$suggestType]
+======================================
+""")
     for key in sorted(info.keys()) :
         title = ""
         mode  = ""
@@ -301,7 +313,7 @@ def sendMessage(info) :
                         numbers =  numbers+ " => [" + str(i.get("break")) + "]"
                     else :
                         mode = "N"
-                    if i.get("continueType") == "even-odd" :
+                    if i.get("type") == "even-odd" :
                         numberType = numberTypeEvenOdd[i.get("group")[0] % 2]
                         suggestType = numberTypeEvenOdd[(i.get("group")[0] + 1) % 2]
                     else :
@@ -319,14 +331,16 @@ def sendMessage(info) :
                         group = numbers,
                         suggestType = suggestType,
                         title = title + "时时彩",
-                        breaked = i.get("break")
+                        breaked = i.get("break"),
+                        date    = i.get("date")[0] + ":" + i.get("date")[1],
+                        breakTime = i.get("breakTime")[0] + ":" + i.get("breakTime")[1]
                     )
     print content
 
 allInfo = {}
 for type in ["CQSSC", "JXSSC", "XJSSC"] :
-    data = continuedNumber(type, 2, type + "_label")
+    data = continuedNumber(type, 1, 2, type + "_label")
     if data :
         allInfo[type] = data
 
-sendMessage(allInfo)
+getMessage(allInfo)
