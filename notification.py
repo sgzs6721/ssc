@@ -284,14 +284,14 @@ def getMessage(info) :
     numberTypeEvenOdd    = ["双", "单"]
 
     tepl = string.Template(
-"""彩种: $title
-模式: $mode
-位置: $position
-时间: [$date]
-类型: [$position]位连续[$continued]期出[$numberType]
-号码: $group
-推荐: 投注[$position]位[$suggestType]
-======================================
+"""---
+#### **彩种**: **$title**
+#### **模式**: **$mode**
+#### **位置**: **$position位**
+#### **时间**: [$date]
+#### **类型**: [**$position**]位连续[**$continued**]期出[**$numberType**]
+#### **号码**: $group
+#### **推荐**: 投注[**$position**]位[**$suggestType**]
 """)
     for key in sorted(info.keys()) :
         title = ""
@@ -351,16 +351,7 @@ def sendMessage(content) :
         }
         postData = urllib.urlencode(parameters)
         request = urllib2.Request(url, postData)
-        # request = urllib2.Request(
-        #     url = url,
-        #     headers = {
-        #         "Content-type" : "application/x-www-form-urlencoded",
-        #         "charset":"UTF-8"
-        #         },
-        #     data = postData
-        # )
         urllib2.urlopen(request)
-
 
 allInfo = {}
 for type in ["CQSSC", "JXSSC", "XJSSC"] :
