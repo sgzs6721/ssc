@@ -287,7 +287,7 @@ def getMessage(info) :
     subject = ""
     tepl = string.Template(
 """#####$currentTime
----
+===========================
 #### **彩种**: **$title**
 #### **模式**: **$mode**
 #### **位置**: **$position位**
