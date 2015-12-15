@@ -78,7 +78,7 @@ def getBeautifulSoup(url) :
     try :
         req = urllib2.Request(url)
         res = urllib2.urlopen(req, timeout = 15).read()
-        time.sleep(2)
+        # time.sleep(2)
     except :
         print "Error in " + url
         return ""
@@ -206,7 +206,7 @@ def writeLabel(index, baseDate, labelDir, group) :
     fileObject.close()
 
 def isLabelExist(index, baseDate, labelDir):
-    if os.path.exists(labelDir + "/" + baseDate[0] + "[" + str(index + 1) + "]") :
+    if os.path.exists(labelDir + "/" + baseDate[0] + "-" + str(index + 1)) :
         return True
     else :
         return False
@@ -269,12 +269,13 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
             if not isLabelExist(index, baseDate, labelDir) :
                 if continueInfo :
                     message.append(continueInfo)
-                    writeLabel(index, baseDate, labelDir, group)
+            writeLabel(index, baseDate, labelDir, group)
 
         if breakContinuedNumber == 0 :
-            if breakInfo :
-                message.append(breakInfo)
-                writeLabel(index, baseDate, labelDir, group)
+            if not isLabelExist(index, baseDate, labelDir) :
+                if breakInfo :
+                    message.append(breakInfo)
+            writeLabel(index, baseDate, labelDir, group)
 
     return message
 
@@ -283,8 +284,10 @@ def getMessage(info) :
     positionArray = ["万", "千", "百", "十", "个"]
     numberTypeEvenOdd    = ["双", "单"]
 
+    subject = ""
     tepl = string.Template(
-"""---
+"""#####$currentTime
+---
 #### **彩种**: **$title**
 #### **模式**: **$mode**
 #### **位置**: **$position位**
@@ -326,6 +329,9 @@ def getMessage(info) :
                             numberType = "小"
                             suggestType = "大"
 
+                    subject = subject + "#####" + title + positionArray[i.get("index")]+ \
+                              numberType + mode + str(i.get("continue")) + "\n"
+
                     content = content + tepl.substitute(
                         mode = mode,
                         position = positionArray[i.get("index")],
@@ -335,29 +341,42 @@ def getMessage(info) :
                         suggestType = suggestType,
                         title = title + "时时彩",
                         breaked = i.get("break"),
-                        date    = i.get("date")[0] + ":" + i.get("date")[1]
+                        date    = i.get("date")[0] + ":" + i.get("date")[1],
+                        currentTime = time.strftime('%Y-%m-%d %H:%M:%S')
                     )
     print content
-    return content
+    return [subject, content]
 
-def sendMessage(content) :
+def sendMessage(subject, content, chanel, mobile) :
     if content :
-        key = "SCU749Tfa80c68db4805b9421f52d360f6614cb565696559f19e"
-        url = "http://sc.ftqq.com/" + key +".send"
+        content = subject + content
         subject = "时时彩计划方案"
-        parameters = {
+        if chanel == "serverChan" :
+            key = "SCU749Tfa80c68db4805b9421f52d360f6614cb565696559f19e"
+            url = "http://sc.ftqq.com/" + key +".send"
+            parameters = {
             "text" : subject, "desp" : content,
             "key"  : key
-        }
+            }
+        elif chanel == "pushBear" :
+            url = "http://api.pushbear.com/smart"
+            parameters = {
+                "sendkey" : "96-d296f0cdb565bae82a833fabcd860309",
+                "text" : subject,
+                "mobile" : mobile,
+                "desp" : content
+            }
+
         postData = urllib.urlencode(parameters)
         request = urllib2.Request(url, postData)
         urllib2.urlopen(request)
 
 allInfo = {}
 for type in ["CQSSC", "JXSSC", "XJSSC"] :
-    data = continuedNumber(type, 1, 2, type + "_label")
+# for type in ["CQSSC", "XJSSC"] :
+    data = continuedNumber(type, 6, 6, type + "_label")
     if data :
         allInfo[type] = data
 
-messageContent = getMessage(allInfo)
-sendMessage(messageContent)
+[subject, messageContent] = getMessage(allInfo)
+sendMessage(subject, messageContent, "serverChan", "")
