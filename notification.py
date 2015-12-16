@@ -198,15 +198,15 @@ def getBaseInfo(continuedType, number) :
     else :
         return number > 4
 
-def writeLabel(index, baseDate, labelDir, group) :
+def writeLabel(index, baseDate, labelDir, group, br) :
     if not os.path.exists(labelDir) :
         os.makedirs(labelDir)
-    fileObject = open(labelDir + "/" + baseDate[0] + "-" + str(index + 1), "w")
-    fileObject.write(str(baseDate) + "=>[" + str(index + 1) + "]=>" + str(group) + "(" + str(len(group)) + ")")
+    fileObject = open(labelDir + "/" + baseDate[0] + "-" + str(index + 1) + br, "w")
+    fileObject.write(str(baseDate) + "=>[" + str(index + 1) + "]=>" + str(group) + "(" + str(len(group)) + br + ")")
     fileObject.close()
 
-def isLabelExist(index, baseDate, labelDir):
-    if os.path.exists(labelDir + "/" + baseDate[0] + "-" + str(index + 1)) :
+def isLabelExist(index, baseDate, labelDir, br):
+    if os.path.exists(labelDir + "/" + baseDate[0] + "-" + str(index + 1) + br) :
         return True
     else :
         return False
@@ -266,16 +266,16 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
             i = i + 1
 
         if continued > 7 :
-            if not isLabelExist(index, baseDate, labelDir) :
+            if not isLabelExist(index, baseDate, labelDir, "") :
                 if continueInfo :
                     message.append(continueInfo)
-            writeLabel(index, baseDate, labelDir, group)
+            writeLabel(index, baseDate, labelDir, group, "")
 
         if breakContinuedNumber == 0 :
-            if not isLabelExist(index, baseDate, labelDir) :
+            if not isLabelExist(index, baseDate, labelDir, "B") :
                 if breakInfo :
                     message.append(breakInfo)
-            writeLabel(index, baseDate, labelDir, group)
+            writeLabel(index, baseDate, labelDir, group, "B")
 
     return message
 
@@ -372,9 +372,9 @@ def sendMessage(subject, content, chanel, mobile) :
         urllib2.urlopen(request)
 
 allInfo = {}
-for type in ["CQSSC", "JXSSC", "XJSSC"] :
-# for type in ["CQSSC", "XJSSC"] :
-    data = continuedNumber(type, 6, 6, type + "_label")
+# for type in ["CQSSC", "JXSSC", "XJSSC"] :
+for type in ["CQSSC", "XJSSC"] :
+    data = continuedNumber(type, 8, 6, type + "_label")
     if data :
         allInfo[type] = data
 
