@@ -40,6 +40,7 @@ def fetchData(soup, type) :
                               checkThree(dataNumber[0:3]),
                               checkThree(dataNumber[2:])])
         data.append(lineNumber)
+    data.reverse()
     return data
 
 def checkThree(dataNumber) :
