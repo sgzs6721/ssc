@@ -29,7 +29,7 @@ def fetchData(soup, type) :
     for index, tr in enumerate(tableTr) :
         td = tr.findAll("td")
         date = td[1].span.text.encode("utf8")
-        time = td[2].text.encode("utf8")[11:]
+        time = ":".join(td[2].text.encode("utf8").split(" "))
         dataNumberDiv = td[3].div.findAll("span")
         dataNumber = ""
         for span in dataNumberDiv :
@@ -223,8 +223,8 @@ def getMessage(info) :
             title = "新疆"
         elif key == "tj" :
             title = "天津"
-        print key
-        print info[key]
+        # print key
+        # print info[key]
         for pos in info[key] :
             if pos :
                 for i in pos :
@@ -259,7 +259,7 @@ def getMessage(info) :
                         suggestType = suggestType,
                         title = title + "时时彩",
                         breaked = i.get("break"),
-                        date    = i.get("date")[0] + ":" + i.get("date")[1],
+                        date    = i.get("date")[1],
                         currentTime = time.strftime('%Y-%m-%d %H:%M:%S')
                     )
     print content
@@ -292,7 +292,7 @@ def sendMessage(subject, content, chanel, mobile) :
 allInfo = {}
 for type in ["cq", "jx", "xj", "tj"] :
 # for type in ["CQSSC", "XJSSC"] :
-    data = continuedNumber(type, 8, 6, type + "_label")
+    data = continuedNumber(type, 7, 6, type + "_label")
     if data :
         allInfo[type] = data
 
