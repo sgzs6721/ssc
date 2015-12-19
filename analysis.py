@@ -291,7 +291,6 @@ def sendMessage(subject, content, chanel, mobile) :
 
 allInfo = {}
 for type in ["cq", "jx", "xj", "tj"] :
-# for type in ["CQSSC", "XJSSC"] :
     data = continuedNumber(type, 7, 6, type + "_label")
     if data :
         allInfo[type] = data
