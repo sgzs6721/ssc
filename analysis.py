@@ -8,6 +8,8 @@ import string
 import time
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
+from email.mime.text import MIMEText
+import smtplib
 
 def getLatestData(type) :
     dataArray = []
@@ -195,12 +197,24 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
 
     return message
 
-def getMessage(info) :
+def getMessage(info, chanel) :
     content = ""
     positionArray = ["万", "千", "百", "十", "个"]
     numberTypeEvenOdd    = ["双", "单"]
 
     subject = ""
+    mailTepl = string.Template(
+"""
+彩种: $title
+模式: $mode
+位置: $position位
+时间: [$date]
+类型: [$position]位连续[$continued]期出[$numberType]
+号码: $group
+推荐: 投注[$position]位[$suggestType]
+===========================
+"""
+    )
     tepl = string.Template(
 """#####$currentTime
 ===========================
@@ -247,23 +261,50 @@ def getMessage(info) :
                             numberType = "小"
                             suggestType = "大"
 
-                    subject = subject + "#####" + title + positionArray[i.get("index")]+ \
+                    markTag = "#####"
+                    if chanel == "mail" : markTag = ""
+                    subject = subject + markTag + title + positionArray[i.get("index")]+ \
                               numberType + mode + str(i.get("continue")) + "\n"
 
-                    content = content + tepl.substitute(
-                        mode = mode,
-                        position = positionArray[i.get("index")],
-                        continued = i.get("continue"),
-                        numberType = numberType,
-                        group = numbers,
-                        suggestType = suggestType,
-                        title = title + "时时彩",
-                        breaked = i.get("break"),
-                        date    = i.get("date")[1],
-                        currentTime = time.strftime('%Y-%m-%d %H:%M:%S')
-                    )
+                    templateData = {
+                        "mode" : mode,
+                        "position" : positionArray[i.get("index")],
+                        "continued" : i.get("continue"),
+                        "numberType" : numberType,
+                        "group" : numbers,
+                        "suggestType" : suggestType,
+                        "title" : title + "时时彩",
+                        "breaked" : i.get("break"),
+                        "date"    : i.get("date")[1],
+                        "currentTime" : time.strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                    if not chanel == "mail" :
+                        content = content + tepl.substitute(templateData)
+                    else :
+                        content = content + mailTepl.substitute(templateData)
     print content
     return [subject, content]
+
+def sendMail(mailHost, sender, toList, sub, content, postfix, mailPass, format='plain') :
+    me=sender + "<" + sender + "@" + postfix + ">"
+
+    msg = MIMEText(content,format,'utf-8')
+    msg["Accept-Language"]="zh-CN"
+    msg["Accept-Charset"]="ISO-8859-1,utf-8"
+
+    msg['Subject'] = sub
+    msg['From'] = me
+    msg['To'] = ";".join(toList)
+    try:
+        s = smtplib.SMTP()
+        s.connect(mailHost)
+        s.login(sender, mailPass)
+        s.sendmail(me, toList, msg.as_string())
+        s.close()
+        return True
+    except Exception, e:
+        print str(e)
+        return False
 
 def sendMessage(subject, content, chanel, mobile) :
     if content :
@@ -284,6 +325,10 @@ def sendMessage(subject, content, chanel, mobile) :
                 "mobile" : mobile,
                 "desp" : content
             }
+        if chanel == "mail" :
+            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@126.com","ch880221@126.com"],
+                     subject, content, "126.com", "", format='plain')
+            return
 
         postData = urllib.urlencode(parameters)
         request = urllib2.Request(url, postData)
@@ -295,5 +340,5 @@ for type in ["cq", "jx", "xj", "tj"] :
     if data :
         allInfo[type] = data
 
-[subject, messageContent] = getMessage(allInfo)
-sendMessage(subject, messageContent, "serverChan", "")
+[subject, messageContent] = getMessage(allInfo, "mail")
+sendMessage(subject, messageContent, "mail", "")
