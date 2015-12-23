@@ -155,7 +155,7 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
                 continued = continued + 1
                 group.append(int(posInfo[0]))
 
-                if continued > continueNumber : # Continued Number
+                if continued >= continueNumber : # Continued Number
                     continueInfo = {
                         "index" :index,
                         "date" : baseDate,
@@ -164,7 +164,7 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
                         "type"  : continueType
                     }
             else :
-                if continued > breakNumber : # Statistic for break and then continued number
+                if continued >= breakNumber : # Statistic for break and then continued number
                     breakContinuedNumber = 0
                     breakInfo = {
                         "index" : index,
@@ -183,7 +183,7 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
 
             i = i + 1
 
-        if continued > 7 :
+        if continued > continueNumber :
             if not isLabelExist(index, baseDate, labelDir, "") :
                 if continueInfo :
                     message.append(continueInfo)
@@ -209,9 +209,10 @@ def getMessage(info, chanel) :
 模式: $mode
 位置: $position位
 时间: [$date]
+期号: [$dateNumber]
 类型: [$position]位连续[$continued]期出[$numberType]
 号码: $group
-推荐: 投注[$position]位[$suggestType]
+推荐: [$nextDateNumber]期起投注[$position]位[$suggestType]
 ===========================
 """
     )
@@ -222,9 +223,10 @@ def getMessage(info, chanel) :
 #### **模式**: **$mode**
 #### **位置**: **$position位**
 #### **时间**: [$date]
+#### **期号**: [$dateNumber]
 #### **类型**: [**$position**]位连续[**$continued**]期出[**$numberType**]
 #### **号码**: $group
-#### **推荐**: 投注[**$position**]位[**$suggestType**]
+#### **推荐**: [$nextDateNumber]期起投注[**$position**]位[**$suggestType**]
 """)
     for key in sorted(info.keys()) :
         title = ""
@@ -276,7 +278,9 @@ def getMessage(info, chanel) :
                         "title" : title + "时时彩",
                         "breaked" : i.get("break"),
                         "date"    : i.get("date")[1],
-                        "currentTime" : time.strftime('%Y-%m-%d %H:%M:%S')
+                        "dateNumber" : i.get("date")[0],
+                        "currentTime" : time.strftime('%Y-%m-%d %H:%M:%S'),
+                        "nextDateNumber" : getNextNumber(i.get("date")[0], key)
                     }
                     if not chanel == "mail" :
                         content = content + tepl.substitute(templateData)
@@ -285,8 +289,19 @@ def getMessage(info, chanel) :
     print content
     return [subject, content]
 
+def getNextNumber(date, type) :
+    dateNumber = int(date[8:])
+    dateTime = datetime.datetime(int(date[0:4]), int(date[4:6]), int(date[6:8]))
+    maxNumber = {"cq" : 120, "jx" :84, "xj" :96, "tj" : 84}
+    if dateNumber > maxNumber[type] :
+        number = 1
+        dateTime = dateTime + datetime.timedelta(days=1)
+    else :
+        number = dateNumber + 1
+    return dateTime.strftime("%Y%m%d") + "%03d" % number
+
 def sendMail(mailHost, sender, toList, sub, content, postfix, mailPass, format='plain') :
-    me=sender + "<" + sender + "@" + postfix + ">"
+    me = sender + "<" + sender + "@" + postfix + ">"
 
     msg = MIMEText(content,format,'utf-8')
     msg["Accept-Language"]="zh-CN"
@@ -326,7 +341,7 @@ def sendMessage(subject, content, chanel, mobile) :
                 "desp" : content
             }
         if chanel == "mail" :
-            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@126.com","ch880221@126.com"],
+            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@126.com", "ch880221@126.com"],
                      subject, content, "126.com", "", format='plain')
             return
 
@@ -336,7 +351,7 @@ def sendMessage(subject, content, chanel, mobile) :
 
 allInfo = {}
 for type in ["cq", "jx", "xj", "tj"] :
-    data = continuedNumber(type, 7, 6, type + "_label")
+    data = continuedNumber(type, 8, 6, type + "_label")
     if data :
         allInfo[type] = data
 
