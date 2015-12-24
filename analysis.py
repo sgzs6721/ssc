@@ -204,7 +204,7 @@ def getMessage(info, chanel) :
 
     subject = ""
     mailTepl = string.Template(
-"""
+"""$currentTime
 彩种: $title
 模式: $mode
 位置: $position位
@@ -292,13 +292,14 @@ def getMessage(info, chanel) :
 def getNextNumber(date, type) :
     dateNumber = int(date[8:])
     dateTime = datetime.datetime(int(date[0:4]), int(date[4:6]), int(date[6:8]))
-    maxNumber = {"cq" : 120, "jx" :84, "xj" :96, "tj" : 84}
-    if dateNumber > maxNumber[type] :
+    maxNumber = {"cq" : 120, "jx" :"084", "xj" :"96", "tj" : "084"}
+    if dateNumber > int(maxNumber[type]) :
         number = 1
         dateTime = dateTime + datetime.timedelta(days=1)
     else :
         number = dateNumber + 1
-    return dateTime.strftime("%Y%m%d") + "%03d" % number
+    formatString =  "%0" + str(len(maxNumber[type])) + "d"
+    return dateTime.strftime("%Y%m%d") + formatString % number
 
 def sendMail(mailHost, sender, toList, sub, content, postfix, mailPass, format='plain') :
     me = sender + "<" + sender + "@" + postfix + ">"
