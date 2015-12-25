@@ -159,6 +159,7 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
                     continueInfo = {
                         "index" :index,
                         "date" : baseDate,
+                        "currentDate" : posInfo[1:],
                         "continue" : continued,
                         "group" : group,
                         "type"  : continueType
@@ -169,6 +170,7 @@ def calculatePos(index, pos, continueNumber, breakNumber, labelDir) :
                     breakInfo = {
                         "index" : index,
                         "date" : baseDate,
+                        "currentDate" : posInfo[1:],
                         "continue" : continued,
                         "group" : group,
                         "type"  : continueType,
@@ -208,10 +210,9 @@ def getMessage(info, chanel) :
 彩种: $title
 模式: $mode
 位置: $position位
-时间: [$date]
-期号: [$dateNumber]
 类型: [$position]位连续[$continued]期出[$numberType]
-号码: $group
+号码: [$dateNumber - $currentNumber]
+          $group
 推荐: [$nextDateNumber]期起投注[$position]位[$suggestType]
 ===========================
 """
@@ -222,10 +223,9 @@ def getMessage(info, chanel) :
 #### **彩种**: **$title**
 #### **模式**: **$mode**
 #### **位置**: **$position位**
-#### **时间**: [$date]
-#### **期号**: [$dateNumber]
 #### **类型**: [**$position**]位连续[**$continued**]期出[**$numberType**]
-#### **号码**: $group
+#### **号码**: [$dateNumber] - [$currentNumber]
+          $group
 #### **推荐**: [$nextDateNumber]期起投注[**$position**]位[**$suggestType**]
 """)
     for key in sorted(info.keys()) :
@@ -280,7 +280,8 @@ def getMessage(info, chanel) :
                         "date"    : i.get("date")[1],
                         "dateNumber" : i.get("date")[0],
                         "currentTime" : time.strftime('%Y-%m-%d %H:%M:%S'),
-                        "nextDateNumber" : getNextNumber(i.get("date")[0], key)
+                        "currentNumber" : i.get("currentDate")[0],
+                        "nextDateNumber" : getNextNumber(i.get("currentDate")[0], key)
                     }
                     if not chanel == "mail" :
                         content = content + tepl.substitute(templateData)
@@ -341,8 +342,8 @@ def sendMessage(subject, content, chanel, mobile) :
                 "desp" : content
             }
         if chanel == "mail" :
-            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@126.com", "ch880221@126.com"],
-                     subject, content, "126.com", "", format='plain')
+            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@qq.com", "ch880221@126.com"],
+                     subject, content, "126.com", "dhysgzs*211", format='plain')
             return
 
         postData = urllib.urlencode(parameters)
@@ -351,7 +352,7 @@ def sendMessage(subject, content, chanel, mobile) :
 
 allInfo = {}
 for type in ["cq", "jx", "xj", "tj"] :
-    data = continuedNumber(type, 8, 6, type + "_label")
+    data = continuedNumber(type, 8, 7, type + "_label")
     if data :
         allInfo[type] = data
 
