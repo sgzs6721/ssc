@@ -293,7 +293,7 @@ def getMessage(info, chanel) :
 def getNextNumber(date, type) :
     dateNumber = int(date[8:])
     dateTime = datetime.datetime(int(date[0:4]), int(date[4:6]), int(date[6:8]))
-    maxNumber = {"cq" : 120, "jx" :"084", "xj" :"96", "tj" : "084"}
+    maxNumber = {"cq" : "120", "jx" :"084", "xj" :"96", "tj" : "084"}
     if dateNumber > int(maxNumber[type]) :
         number = 1
         dateTime = dateTime + datetime.timedelta(days=1)
@@ -344,7 +344,7 @@ def sendMessage(subject, content, chanel, mobile) :
             }
         if chanel == "mail" :
             sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@qq.com", "ch880221@126.com"],
-                     subject, content, "126.com", "dhysgzs*211", format='plain')
+                     subject, content, "126.com", "", format='plain')
             return
 
         postData = urllib.urlencode(parameters)
