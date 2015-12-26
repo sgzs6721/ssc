@@ -74,24 +74,29 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
                 #         # writeLabel(type, continueType, index, baseDate, labelDir, group, times)
                 #         print "[" + type + "][" + str(index + 1) + "]" + "(" + str(continued) + ")" + str(baseDate) + str(group)
 
-                if continued >= breakNumber : # Statistic for break and then continued number
+                if continued == breakNumber : # Statistic for break and then continued number
                     temp = 1
                     breakNumbers = []
+                    endNumbers   = []
                     while True :
                     # while False : # Do not calculate break Numbers
                         breakNumbers.append(int(pos[i + temp].split(" ")[0]))
+                        # if not int(posInfo[0]) % 2 == int(pos[i+temp].split(" ")[0]) %2 :
                         if condition == getBaseInfo(continueType, int(pos[i + temp].split(" ")[0])) :
+                            for j in range(1,6) :
+                                endNumbers.append(int(pos[i+temp+j].split(" ")[0]))
                             break
                         temp = temp + 1
                         if i + temp == len(pos) : break
                     if temp >= 1 :
                     # if False : # Do not show break Numbers
                         timer = timer + 1
-                        printInfo = "(" + str(index) + ")=>[" + str(continued) + "]"
+                        printInfo = str(timer) + "(" + str(index) + ")=>[" + str(continued) + "]"
                         printInfo = printInfo + str(group) + "=>" + "[" + posInfo[0] + "]"
                         printInfo = printInfo + "(" + " ".join([posInfo[1], posInfo[2]]) + ")" + "=>"
                         printInfo = printInfo + str(breakNumbers)
-                        printInfo = printInfo + "=>{" + str(temp - 1) + "}"
+                        printInfo = printInfo + "=>{" + str(temp) + "}"
+                        printInfo = printInfo + str(endNumbers)
                         print printInfo
                 continued = 1
                 base = condition
@@ -106,4 +111,4 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
 #     continuedNumber("20070401", "20151202", "CQSSC", 6, type, "CQLabel")
 #     continuedNumber("20080928", "20151202", "JXSSC", 6, type, "JXLabel")
 #     continuedNumber("20070812", "20151208", "XJSSC", 6, type, "XJLabel")
-continuedNumber("20150101", "20151202", "CQSSC", 7, "even-od", "XJLabel")
+continuedNumber("20070812", "20151202", "XJSSC", 6, "even-odd", "XJLabel")

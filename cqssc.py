@@ -57,11 +57,11 @@ def checkThree(dataNumber) :
 
 def generateHistory(type) :
     fileObject = codecs.open(type + ".txt", "r", "utf_8_sig")
-    dayArray = fileObject.readlines()
-    dayArray.reverse()
+    allData = fileObject.readlines()
+    allData.reverse()
     datetime = ""
     dayArray = []
-    for line in dayArray :
+    for line in allData :
         dataLine = line.replace("-", "")
         info = dataLine.split("\t")
         dateNumber = info[0]
@@ -73,25 +73,27 @@ def generateHistory(type) :
             if not len(dayArray) == 0 :
                 insertDB(dayArray, datetime, type)
                 dayArray = []
-            dayArray.append([dateNumber, number, front3, end3, "0", "0", "0"])
-            datetime = date
-
+        dayArray.append([dateNumber, number, front3, end3, "0", "0", "0"])
+        datetime = date
 
 def insertDB(array, datetime, type) :
-    [dateNumber, number, front3, end3, front4, end4, all] = array
-    time = getTime(len(array), dateNumber, type)
-    try :
-        cur=conn.cursor()
-        statement = "insert into " + "`" + type + "`"  + \
-        "(`ID`,`date`,`time`,`number`,`front3`,`end3`,`front4`,`end4`,`all`) VALUES (NULL,'" + \
-        dateNumber + "','" + time + "','" + number +"','"+ front3 + "','" + end3 + "','" + \
-        front4 + "','" + end4 + "','" + all + "')"
+    arrayLen = len(array)
+    for record in array :
+        dateNumber, number, front3, end3, front4, end4, all = record
+        time = getTime(arrayLen, int(dateNumber[8:]), type)
+        time = dateNumber[0:4] + "-" + dateNumber[4:6] + "-" + dateNumber[6:8] + " " + time
+        try :
+            cur=conn.cursor()
+            statement = "insert into " + "`" + type + "`"  + \
+            "(`ID`,`date`,`time`,`number`,`front3`,`end3`,`front4`,`end4`,`all`) VALUES (NULL,'" + \
+            dateNumber + "','" + time + "','" + number +"','"+ front3 + "','" + end3 + "','" + \
+            front4 + "','" + end4 + "','" + all + "')"
 
-        cur.execute(statement)
-        cur.close()
-        conn.commit()
-    except MySQLdb.Error,e:
-         print "\tMysql Error %d: %s" % (e.args[0], e.args[1])
+            cur.execute(statement)
+            cur.close()
+            conn.commit()
+        except MySQLdb.Error,e:
+             print "\tMysql Error %d: %s" % (e.args[0], e.args[1])
 
 
 host = "localhost"
