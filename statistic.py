@@ -74,29 +74,53 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
                 #         # writeLabel(type, continueType, index, baseDate, labelDir, group, times)
                 #         print "[" + type + "][" + str(index + 1) + "]" + "(" + str(continued) + ")" + str(baseDate) + str(group)
 
-                if continued == breakNumber : # Statistic for break and then continued number
+                if continued > breakNumber : # Statistic for break and then continued number
                     temp = 1
                     breakNumbers = []
                     endNumbers   = []
+
+                    drop = 1
+                    dropNumbers  = []
+                    trend = group[-1] - int(posInfo[0])
+                    # while True :
+                    while False :
+                        if drop + i == len(pos) : break
+                        dropNumbers.append(int(pos[i+drop].split(" ")[0]))
+                        if trend >= 0 :
+                            if int(pos[i+drop].split(" ")[0]) < 5 :
+                                break
+                        if trend < 0 :
+                            if int(pos[i+drop].split(" ")[0]) > 4 :
+                                break
+                        drop = drop + 1
+                    for j in range(1,7) :
+                        if i + j == len(pos) :
+                            break
+                        endNumbers.append(int(pos[i+j].split(" ")[0]))
+
                     while True :
                     # while False : # Do not calculate break Numbers
                         breakNumbers.append(int(pos[i + temp].split(" ")[0]))
                         # if not int(posInfo[0]) % 2 == int(pos[i+temp].split(" ")[0]) %2 :
                         if condition == getBaseInfo(continueType, int(pos[i + temp].split(" ")[0])) :
-                            for j in range(1,6) :
-                                endNumbers.append(int(pos[i+temp+j].split(" ")[0]))
+                            # for j in range(1,6) :
+                            #     if i + temp + j == len(pos) :
+                            #         break
+                            #     endNumbers.append(int(pos[i+temp+j].split(" ")[0]))
                             break
                         temp = temp + 1
                         if i + temp == len(pos) : break
-                    if temp >= 1 :
-                    # if False : # Do not show break Numbers
+                    if temp >= 6 :
+                    # if drop >= 6 :
                         timer = timer + 1
                         printInfo = str(timer) + "(" + str(index) + ")=>[" + str(continued) + "]"
                         printInfo = printInfo + str(group) + "=>" + "[" + posInfo[0] + "]"
-                        printInfo = printInfo + "(" + " ".join([posInfo[1], posInfo[2]]) + ")" + "=>"
-                        printInfo = printInfo + str(breakNumbers)
+                        printInfo = printInfo + "(" + " ".join([posInfo[1], posInfo[2]]) + ")"
+                        printInfo = printInfo + "=>" + str(breakNumbers)
                         printInfo = printInfo + "=>{" + str(temp) + "}"
-                        printInfo = printInfo + str(endNumbers)
+                        # printInfo = printInfo + "=>" + str(dropNumbers)
+                        # printInfo = printInfo + "=>{" + str(drop) + "}"
+                        # printInfo = printInfo + str(endNumbers)
                         print printInfo
                 continued = 1
                 base = condition
