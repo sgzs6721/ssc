@@ -86,9 +86,8 @@ def insertDB(array, datetime, type) :
             cur=conn.cursor()
             statement = "insert into " + "`" + type + "`"  + \
             "(`ID`,`date`,`time`,`number`,`front3`,`end3`,`front4`,`end4`,`all`) VALUES (NULL,'" + \
-            dateNumber + "','" + time + "','" + number +"','"+ front3 + "','" + end3 + "','" + \
+            dateNumber + "','" + time + "','" + number.strip() +"','"+ front3 + "','" + end3 + "','" + \
             front4 + "','" + end4 + "','" + all + "')"
-
             cur.execute(statement)
             cur.close()
             conn.commit()
