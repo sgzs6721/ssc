@@ -204,10 +204,9 @@ def getMessage(info, chanel) :
     positionArray = ["万", "千", "百", "十", "个"]
     numberTypeEvenOdd    = ["双", "单"]
 
-    subject = ""
+    subject = time.strftime('%Y-%m-%d %H:%M:%S') + "\n"
     mailTepl = string.Template(
-"""$currentTime
-彩种: $title
+"""彩种: $title
 模式: $mode
 位置: $position位
 类型: [$position]位连续[$continued]期出[$numberType]
@@ -218,8 +217,7 @@ def getMessage(info, chanel) :
 """
     )
     tepl = string.Template(
-"""#####$currentTime
-===========================
+"""===========================
 #### **彩种**: **$title**
 #### **模式**: **$mode**
 #### **位置**: **$position位**
@@ -276,10 +274,9 @@ def getMessage(info, chanel) :
                         "group" : numbers,
                         "suggestType" : suggestType,
                         "title" : title + "时时彩",
-                        "breaked" : i.get("break"),
+                        # "breaked" : i.get("break"),
                         "date"    : i.get("date")[1],
                         "dateNumber" : i.get("date")[0],
-                        "currentTime" : time.strftime('%Y-%m-%d %H:%M:%S'),
                         "currentNumber" : i.get("currentDate")[0],
                         "nextDateNumber" : getNextNumber(i.get("currentDate")[0], key)
                     }
@@ -287,6 +284,7 @@ def getMessage(info, chanel) :
                         content = content + tepl.substitute(templateData)
                     else :
                         content = content + mailTepl.substitute(templateData)
+    subject = subject + "--------------------------\n"
     print content
     return [subject, content]
 
@@ -343,7 +341,7 @@ def sendMessage(subject, content, chanel, mobile) :
                 "desp" : content
             }
         if chanel == "mail" :
-            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@qq.com", "ch880221@126.com"],
+            sendMail("smtp.126.com", "sgzs6721@126.com", ["sgzs6721@126.com", "ch880221@126.com"],
                      subject, content, "126.com", "", format='plain')
             return
 
