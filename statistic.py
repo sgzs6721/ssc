@@ -68,35 +68,15 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
                 if continued > maxContinuedNumber[index] :
                     maxContinuedNumber[index] = continued
             else :
-                # Find more than N times continued detail
-                # for times in range(15, 25) : # Generate label file
-                #     if continued == times :
-                #         # writeLabel(type, continueType, index, baseDate, labelDir, group, times)
-                #         print "[" + type + "][" + str(index + 1) + "]" + "(" + str(continued) + ")" + str(baseDate) + str(group)
-
-                if continued > breakNumber : # Statistic for break and then continued number
+                if continued >= breakNumber : # Statistic for break and then continued number
                     temp = 1
                     breakNumbers = []
                     endNumbers   = []
 
-                    drop = 1
-                    dropNumbers  = []
-                    trend = group[-1] - int(posInfo[0])
-                    # while True :
-                    while False :
-                        if drop + i == len(pos) : break
-                        dropNumbers.append(int(pos[i+drop].split(" ")[0]))
-                        if trend >= 0 :
-                            if int(pos[i+drop].split(" ")[0]) < 5 :
-                                break
-                        if trend < 0 :
-                            if int(pos[i+drop].split(" ")[0]) > 4 :
-                                break
-                        drop = drop + 1
-                    for j in range(1,7) :
-                        if i + j == len(pos) :
-                            break
-                        endNumbers.append(int(pos[i+j].split(" ")[0]))
+                    # for j in range(1,20) :
+                    #     if i + j == len(pos) :
+                    #         break
+                    #     endNumbers.append(int(pos[i+j].split(" ")[0]))
 
                     while True :
                     # while False : # Do not calculate break Numbers
@@ -110,16 +90,15 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
                             break
                         temp = temp + 1
                         if i + temp == len(pos) : break
-                    if temp >= 6 :
+                    # if temp >= 5 :
                     # if drop >= 6 :
+                    if getStatistic(100, 10, pos, i, base, continueType, continued) and temp >= 5 :
                         timer = timer + 1
                         printInfo = str(timer) + "(" + str(index) + ")=>[" + str(continued) + "]"
                         printInfo = printInfo + str(group) + "=>" + "[" + posInfo[0] + "]"
                         printInfo = printInfo + "(" + " ".join([posInfo[1], posInfo[2]]) + ")"
                         printInfo = printInfo + "=>" + str(breakNumbers)
                         printInfo = printInfo + "=>{" + str(temp) + "}"
-                        # printInfo = printInfo + "=>" + str(dropNumbers)
-                        # printInfo = printInfo + "=>{" + str(drop) + "}"
                         # printInfo = printInfo + str(endNumbers)
                         print printInfo
                 continued = 1
@@ -130,9 +109,29 @@ def continuedNumber(fromDate, toDate, type, breakNumber, continueType, labelDir)
     print maxContinuedNumber # Find the max continued number
     return allMessage
 
+def getStatistic(scope, diff, data, index, base, continueType, continued) :
+    if index - continued <= scope : return False
+
+    timerBase = 0
+    timerReverse = 0
+    for i in range(scope) :
+        number = int(data[index - i - continued].split(" ")[0])
+        if getBaseInfo(continueType, number) == base :
+            timerBase = timerBase + 1
+        else :
+            timerReverse = timerReverse + 1
+
+    if timerBase - timerReverse >= diff :
+        return True
+
+    return False
+    # print timerBase, timerReverse
+
+
 # Statistic for continued number and break continued number
 # for type in ["even-odd", "size"] :
 #     continuedNumber("20070401", "20151202", "CQSSC", 6, type, "CQLabel")
 #     continuedNumber("20080928", "20151202", "JXSSC", 6, type, "JXLabel")
 #     continuedNumber("20070812", "20151208", "XJSSC", 6, type, "XJLabel")
-continuedNumber("20070812", "20151202", "XJSSC", 6, "even-odd", "XJLabel")
+continuedNumber("20070812", "20151202", "XJSSC", 9, "even-od", "XJLabel")
+continuedNumber("20070812", "20151202", "XJSSC", 9, "even-odd", "XJLabel")
